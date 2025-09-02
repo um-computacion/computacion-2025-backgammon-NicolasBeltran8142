@@ -1,9 +1,10 @@
-from core.dados import Dados
+from core.dados import Dice
 
 def main():
-    dados = Dados()
-    valores = dados.tirar()
-    print(f"Tirada: {valores}")
+    dice = Dice()
+    values = dice.roll_dice()
+    print(f"Tirada: {values}")
+    print(f"¿Es doble? {dice.is_double()}")
 
 if __name__ == "__main__":
     main()
