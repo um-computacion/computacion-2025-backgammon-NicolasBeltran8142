@@ -1,5 +1,12 @@
 import unittest
-from core.dados import Dice
+from core.dados import Dice, obtener_movimientos
+
+class TestDados(unittest.TestCase):
+    def test_tirada_normal(self):
+        self.assertEqual(obtener_movimientos(3, 5), [3, 5])
+
+    def test_tirada_doble(self):
+        self.assertEqual(obtener_movimientos(4, 4), [4, 4, 4, 4])
 
 class TestDice(unittest.TestCase):
     def test_roll_dice_returns_two_values(self):
@@ -24,7 +31,6 @@ class TestDice(unittest.TestCase):
         dice = Dice()
         dice.set_values_for_test(2, 5)
         self.assertFalse(dice.is_double())
-
 
 if __name__ == "__main__":
     unittest.main()
