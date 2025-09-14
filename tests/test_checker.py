@@ -1,5 +1,5 @@
 import unittest
-from core.validacion import validar_movimiento, Punto
+from core.checker import validar_movimiento, Punto
 
 class TestValidacion(unittest.TestCase):
     def test_movimiento_valido(self):
