@@ -1,10 +1,13 @@
-from core.dados import Dice
+from core.board import Board
 
 def main():
-    dice = Dice()
-    values = dice.roll_dice()
-    print(f"Tirada: {values}")
-    print(f"¿Es doble? {dice.is_double()}")
+    print("Bienvenido a Backgammon Computacion 2025\n")
+
+    tablero = Board()
+    tablero.mostrar_tablero()
+
+    jugador_actual = "Jugador1"
+    print("\nTurno de:", jugador_actual)
 
 if __name__ == "__main__":
     main()
