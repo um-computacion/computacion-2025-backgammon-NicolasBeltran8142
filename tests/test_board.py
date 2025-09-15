@@ -1,6 +1,7 @@
 import unittest
 from core.board import Board
 from core.checker import Checker
+from core.player import registrar_jugada, historial_de_jugadas
 
 class TestBoardInitialization(unittest.TestCase):
     def setUp(self):
@@ -24,6 +25,12 @@ class TestBoardInitialization(unittest.TestCase):
             fichas = self.board._puntos_[punto]
             self.assertEqual(len([f for f in fichas if f._color_ == "negro"]), cantidad,
                              f"Debe haber {cantidad} fichas negras en el punto {punto}")
+class TestRegistro(unittest.TestCase):
+    def test_registrar_jugada(self):
+        historial_de_jugadas.clear()
+        registrar_jugada("Jugador1", 5, 10)
+        self.assertEqual(len(historial_de_jugadas), 1)
+        self.assertEqual(historial_de_jugadas[0]["origen"], 5)
 class TestMovimientoFichas(unittest.TestCase):
     def setUp(self):
         self.board = Board()
@@ -40,16 +47,15 @@ class TestMovimientoFichas(unittest.TestCase):
 
     def test_error_sin_fichas_en_origen(self):
         with self.assertRaises(ValueError):
-            self.board.mover_ficha(2, 3, "blanco")  # punto 2 está vacío
+            self.board.mover_ficha(2, 3, "blanco")  
 
     def test_error_color_incorrecto(self):
         with self.assertRaises(ValueError):
-            self.board.mover_ficha(0, 1, "negro")  # hay fichas blancas en el punto 0
+            self.board.mover_ficha(0, 1, "negro")  
 
     def test_error_destino_ocupado_por_oponente(self):
-        # colocamos una ficha negra en el destino
         self.board._puntos_[1].append(Checker("negro", 1))
         with self.assertRaises(ValueError):
-            self.board.mover_ficha(0, 1, "blanco")  # blanco no puede ir a punto ocupado por negro
+            self.board.mover_ficha(0, 1, "blanco")  
 if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,7 @@
 from core.checker import Checker
 
 class Board:
+    
     def __init__(self):
         self._puntos_ = [[] for _ in range(24)]
 
@@ -50,3 +51,34 @@ class Board:
         ficha._position_ = destino
         punto_origen.pop()
         punto_destino.append(ficha)
+    def mostrar_tablero(self):
+        print("\nBienvenido a Backgammon Compucation 2025\n")
+
+        print("ZONA SUPERIOR (13 → 24):")
+        print(" ".join([f"{i:2}" for i in range(12, 24)]))
+        print(" ".join([
+            "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
+            for i in range(12, 24)
+        ]))
+
+        print("\n" + "-" * 50 + "\n")
+
+        print("ZONA INFERIOR (12 → 1):")
+        print(" ".join([f"{i:2}" for i in reversed(range(12))]))
+        print(" ".join([
+            "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
+            for i in reversed(range(12))
+        ]))
+        
+
+ 
+historial_de_jugadas = []
+       
+def registrar_jugada(jugador, origen, destino, captura=False):
+    jugada = {
+        "jugador": jugador,
+        "origen": origen,
+        "destino": destino,
+        "captura": captura
+    }
+    historial_de_jugadas.append(jugada)
