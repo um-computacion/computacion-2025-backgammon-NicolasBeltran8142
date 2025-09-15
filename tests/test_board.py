@@ -1,7 +1,6 @@
 import unittest
-from core.board import Board
+from core.board import Board, historial_de_jugadas, registrar_jugada
 from core.checker import Checker
-from core.player import registrar_jugada, historial_de_jugadas
 
 class TestBoardInitialization(unittest.TestCase):
     def setUp(self):
