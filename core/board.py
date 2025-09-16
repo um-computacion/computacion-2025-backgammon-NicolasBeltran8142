@@ -69,7 +69,18 @@ class Board:
             "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
             for i in reversed(range(12))
         ]))
-        
+    def eliminar_ficha_si_unica(self, punto, color):
+        if not (0 <= punto < 24):
+            raise ValueError("Point must be between 0 and 23")
+
+        casilla = self._puntos_[punto]
+        if len(casilla) == 1 and casilla[0]._color_ == color:
+            ficha = casilla.pop()
+            print(f"Removed {color} checker from point {punto}")
+            return ficha
+        else:
+            raise ValueError(f"Cannot remove checker from point {punto}: either empty, multiple checkers, or wrong color")
+
 
  
 historial_de_jugadas = []
