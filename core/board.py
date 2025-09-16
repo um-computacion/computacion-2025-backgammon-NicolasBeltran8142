@@ -69,7 +69,35 @@ class Board:
             "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
             for i in reversed(range(12))
         ]))
-        
+    def eliminar_ficha_si_unica(self, punto, color):
+        if not (0 <= punto < 24):
+            raise ValueError("El punto debe estar entre 0 y 23")
+
+        casilla = self._puntos_[punto]
+        if len(casilla) == 1 and casilla[0]._color_ == color:
+            ficha = casilla.pop()
+            print(f"Se eliminó una ficha {color} del punto {punto}")
+            return ficha
+        else:
+            raise ValueError(f"No se puede eliminar la ficha del punto {punto}: está vacío, hay múltiples fichas o el color no coincide")
+    def puede_entrar_desde_bar(self, color, entrada):
+        punto = self._puntos_[entrada]
+        if not punto:
+            return True
+        return punto[-1]._color_ == color or len(punto) < 2
+    def intentar_reingreso(self, color):
+        entradas = range(0, 6) if color == "blanco" else range(18, 24)
+
+        for entrada in entradas:
+            if self.puede_entrar_desde_bar(color, entrada):
+                self._puntos_[entrada].append(Checker(color, entrada))
+                print(f"{color} reenters at point {entrada}")
+                return True
+
+        print(f"{color} No se puede volver a entrar: todos los puntos de entrada están bloqueados. Se perdió el turno.")
+        return False
+
+
 
  
 historial_de_jugadas = []
