@@ -100,17 +100,14 @@ class TestReingresoDesdeBar(unittest.TestCase):
         self.assertTrue(self.board.puede_entrar_desde_bar("blanco", 0))
 
     def test_intentar_reingreso_exitoso(self):
-        # Todos los puntos de entrada están vacíos
         resultado = self.board.intentar_reingreso("blanco")
         self.assertTrue(resultado)
-        # Verificamos que haya una ficha blanca en algún punto de entrada
         self.assertTrue(any(
             self.board._puntos_[i] and self.board._puntos_[i][-1]._color_ == "blanco"
             for i in range(0, 6)
         ))
 
     def test_intentar_reingreso_fallido(self):
-        # Bloquear todos los puntos de entrada para blanco
         for i in range(0, 6):
             self.board._puntos_[i] = [Checker("negro", i), Checker("negro", i)]
         resultado = self.board.intentar_reingreso("blanco")
