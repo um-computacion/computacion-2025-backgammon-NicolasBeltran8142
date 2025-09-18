@@ -1,5 +1,5 @@
 import unittest
-from core.player import Jugador
+from core.player import Jugador, TurnManager
 
 class TestJugador(unittest.TestCase):
     def setUp(self):
@@ -34,6 +34,5 @@ class TestJugador(unittest.TestCase):
         for _ in range(15):
             self.jugador.sacar_ficha()
         self.assertTrue(self.jugador.ha_ganado())
-
 if __name__ == "__main__":
     unittest.main()
