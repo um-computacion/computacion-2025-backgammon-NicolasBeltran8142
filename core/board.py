@@ -80,6 +80,7 @@ class Board:
             return ficha
         else:
             raise ValueError(f"No se puede eliminar la ficha del punto {punto}: está vacío, hay múltiples fichas o el color no coincide")
+    
     def puede_entrar_desde_bar(self, color, entrada):
         punto = self._puntos_[entrada]
         if not punto:
