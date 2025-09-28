@@ -1,11 +1,10 @@
 class Checker:
     def __init__(self, color, position):
-        if color not in ["blanco", "negro"]:
-            raise ValueError("Color inválido")
-        if not (0 <= position < 24):
-            raise ValueError("Posición inválida")
         self._color_ = color
         self._position_ = position
+
+        if position is not None and not (0 <= position < 24):
+            raise ValueError("Posición inválida")
 
     @property
     def color(self):

@@ -20,31 +20,39 @@ def iniciar_juego():
     jugador1 = Jugador("Jugador 1", "blanco")
     jugador2 = Jugador("Jugador 2", "negro")
     tablero = Board()
-    tablero.inicializar_fichas()
     turnos = TurnManager(jugador1, jugador2)
 
+    tablero.inicializar_fichas()
+
     print("🎮 Jugadores:")
-    print(jugador1)
-    print(jugador2)
+    print(f"{jugador1.nombre} ({jugador1.color})")
+    print(f"{jugador2.nombre} ({jugador2.color})")
 
     while True:
         tablero.mostrar_tablero()
         turnos.mostrar_turno()
         jugador = turnos.jugador_actual()
 
-        puede_reingresar = tablero.intentar_reingreso(jugador.color)
-
-        if not puede_reingresar:
-            print("⏭️ Turno perdido: no puede reingresar ninguna ficha")
-            turnos.siguiente_turno()
-            continue
-
-        print("🟢 Listo para mover ficha (simulado)")
+        tiene_en_barra = any(f._position_ == "bar" for f in jugador.fichas)
+        if tiene_en_barra:
+            puede_reingresar = tablero.intentar_reingreso(jugador.color)
+            if not puede_reingresar:
+                print("⏭️ Turno perdido: no puede reingresar ninguna ficha")
+                turnos.siguiente_turno()
+                continue
+            else:
+                print("🔁 Reingresó una ficha desde la barra")
+        else:
+            print("🟢 Listo para mover ficha (simulado)")
+            # Acá podrías pedir origen/destino y usar tablero.mover_ficha()
 
         turnos.siguiente_turno()
 
 def main():
-    iniciar_juego()
+    try:
+        iniciar_juego()
+    except KeyboardInterrupt:
+        print("\n👋 Juego terminado por el usuario.")
 
 if __name__ == "__main__":
     main()

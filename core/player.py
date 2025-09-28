@@ -1,9 +1,12 @@
+from core.checker import Checker
+
 class Jugador:
     def __init__(self, nombre, color):
         self.nombre = nombre
         self.color = color
         self.puntos = 0
         self.fichas_fuera = 0
+        self.fichas = [Checker(color, None) for _ in range(15)]
 
     def __str__(self):
         return f"{self.nombre} juega con fichas {self.color}"
@@ -18,16 +21,19 @@ class Jugador:
 
     def ha_ganado(self):
         return self.fichas_fuera >= 15
+
+
 class TurnManager:
-    def __init__(self, player1, player2):
-        self.players = [player1, player2]
-        self.current_index = 0
+    def __init__(self, jugador1, jugador2):
+        self.jugadores = [jugador1, jugador2]
+        self.indice_actual = 0
 
-    def current_player(self):
-        return self.players[self.current_index]
+    def jugador_actual(self):
+        return self.jugadores[self.indice_actual]
 
-    def next_turn(self):
-        self.current_index = (self.current_index + 1) % 2
+    def siguiente_turno(self):  # ← Este es el método correcto
+        self.indice_actual = (self.indice_actual + 1) % 2
 
-    def show_turn(self):
-        print(f"\n🎲 Turn: {self.current_player().name} ({self.current_player().color})")
+    def mostrar_turno(self):
+        jugador = self.jugador_actual()
+        print(f"\n🎲 Turno de: {jugador.nombre} ({jugador.color})")
