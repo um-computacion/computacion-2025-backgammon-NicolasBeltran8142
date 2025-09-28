@@ -40,8 +40,6 @@ def iniciar_juego():
             continue
 
         print("🟢 Listo para mover ficha (simulado)")
-        # Acá iría la lógica de movimiento real
-        # tablero.mover_ficha(...)
 
         turnos.siguiente_turno()
 

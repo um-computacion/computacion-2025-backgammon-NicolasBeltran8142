@@ -22,6 +22,10 @@ class TestBoardInitialization(unittest.TestCase):
         for punto, cantidad in posiciones_negras.items():
             fichas = self.board._puntos_[punto]
             self.assertEqual(len([f for f in fichas if f._color_ == "negro"]), cantidad)
+    def test_mostrar_tablero_activa_ramas(self):
+        board = Board()
+        board.mostrar_tablero()
+
 
 class TestMovimientoFichas(unittest.TestCase):
     def setUp(self):
@@ -78,6 +82,15 @@ class TestEliminarFichas(unittest.TestCase):
     def test_error_si_indice_fuera_de_rango(self):
         with self.assertRaises(ValueError):
             self.board.eliminar_ficha_si_unica(24, "blanco")
+    
+    def test_mover_desde_punto_vacio(self):
+        board = Board()
+        # Punto 3 está vacío por defecto
+        with self.assertRaises(ValueError) as context:
+            board.mover_ficha(3, 5, "blanco")
+        self.assertIn("No hay fichas en el punto", str(context.exception))
+
+
 
 class TestReingresoDesdeBar(unittest.TestCase):
     def setUp(self):
