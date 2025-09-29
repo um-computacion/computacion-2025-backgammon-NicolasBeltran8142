@@ -41,6 +41,3 @@ class TestJugador(unittest.TestCase):
         self.assertEqual(tm.jugador_actual().nombre, "B")
         tm.siguiente_turno()
         self.assertEqual(tm.jugador_actual().nombre, "A")
-
-if __name__ == "__main__":
-    unittest.main()

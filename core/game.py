@@ -1,50 +1,54 @@
 from core.board import Board
 from core.dados import Dice
 from core.checker import Checker
-from core.player import Jugador
+from core.player import Jugador, TurnManager
 
-class Backgammon:
+class Game:
     def __init__(self):
         self.board = Board()
         self.dice = Dice()
-        self.player1 = Jugador("Jugador1", "blanco")
-        self.player2 = Jugador("Jugador2", "negro")
-        self.current_player = self.player1
+        self.jugador1 = Jugador("Jugador 1", "blanco")
+        self.jugador2 = Jugador("Jugador 2", "negro")
+        self.turnos = TurnManager(self.jugador1, self.jugador2)
         self.last_roll = None
         self.available_moves = []
         self.historial = []
 
-        self.fichas = {
-            "blanco": [Checker("blanco", None) for _ in range(15)],
-            "negro": [Checker("negro", None) for _ in range(15)]
-        }
-
-    def iniciar_partida(self):
         self.board.inicializar_fichas()
+        self._asignar_fichas_a_jugadores()
+
+    def _asignar_fichas_a_jugadores(self):
         posiciones = {
             "blanco": [0]*2 + [11]*5 + [16]*3 + [18]*5,
             "negro": [23]*2 + [12]*5 + [7]*3 + [5]*5
         }
-        for color in posiciones:
-            for i, punto in enumerate(posiciones[color]):
-                self.fichas[color][i]._position_ = punto
+        for color, puntos in posiciones.items():
+            jugador = self.jugador1 if color == "blanco" else self.jugador2
+            for i, punto in enumerate(puntos):
+                jugador.fichas[i]._position_ = punto
 
     def tirar_dados(self):
         self.last_roll = self.dice.roll()
         self.available_moves = self.dice.get_moves(self.last_roll)
         return self.last_roll
 
+    def jugador_actual(self):
+        return self.turnos.jugador_actual()
+
     def cambiar_turno(self):
-        self.current_player = self.player2 if self.current_player == self.player1 else self.player1
+        self.turnos.siguiente_turno()
 
     def fichas_en_punto(self, punto, color):
-        return [f for f in self.fichas[color] if f._position_ == punto]
+        jugador = self.jugador1 if color == "blanco" else self.jugador2
+        return [f for f in jugador.fichas if f._position_ == punto]
 
     def fichas_en_barra(self, color):
-        return [f for f in self.fichas[color] if f._position_ == "bar"]
+        jugador = self.jugador1 if color == "blanco" else self.jugador2
+        return [f for f in jugador.fichas if f._position_ == "bar"]
 
     def fichas_borneadas(self, color):
-        return [f for f in self.fichas[color] if f._position_ == "off"]
+        jugador = self.jugador1 if color == "blanco" else self.jugador2
+        return [f for f in jugador.fichas if f._position_ == "off"]
 
     def mover_ficha(self, origen, destino, color):
         fichas = self.fichas_en_punto(origen, color)
@@ -64,3 +68,10 @@ class Backgammon:
         self.board.mover_ficha(origen, destino, color)
         self.historial.append((color, origen, destino))
         return True
+
+    def verificar_ganador(self):
+        if self.jugador1.ha_ganado():
+            return self.jugador1.nombre
+        elif self.jugador2.ha_ganado():
+            return self.jugador2.nombre
+        return None

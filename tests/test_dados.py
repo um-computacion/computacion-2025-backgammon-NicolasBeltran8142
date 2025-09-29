@@ -1,36 +1,40 @@
 import unittest
-from core.dados import Dice, obtener_movimientos
-
-class TestDados(unittest.TestCase):
-    def test_tirada_normal(self):
-        self.assertEqual(obtener_movimientos(3, 5), [3, 5])
-
-    def test_tirada_doble(self):
-        self.assertEqual(obtener_movimientos(4, 4), [4, 4, 4, 4])
+from core.dados import Dice
 
 class TestDice(unittest.TestCase):
-    def test_roll_dice_returns_two_values(self):
-        dice = Dice()
-        values = dice.roll_dice()
-        self.assertEqual(len(values), 2)
-        self.assertTrue(all(1 <= v <= 6 for v in values))
 
-    def test_get_values_after_roll(self):
+    def test_roll_dice_returns_valid_values(self):
         dice = Dice()
-        dice.roll_dice()
-        values = dice.get_values()
-        self.assertEqual(len(values), 2)
-        self.assertTrue(all(1 <= v <= 6 for v in values))
+        val1, val2 = dice.roll_dice()
+        self.assertIn(val1, range(1, 7))
+        self.assertIn(val2, range(1, 7))
+
+    def test_get_values_reflects_last_roll(self):
+        dice = Dice()
+        rolled = dice.roll_dice()
+        self.assertEqual(dice.get_values(), rolled)
 
     def test_is_double_true(self):
         dice = Dice()
-        dice._Dice__values__ = (3, 3)
+        dice.set_values_for_test(4, 4)
         self.assertTrue(dice.is_double())
 
     def test_is_double_false(self):
         dice = Dice()
-        dice.set_values_for_test(2, 5)
+        dice.set_values_for_test(3, 5)
         self.assertFalse(dice.is_double())
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_set_values_for_test_sets_correctly(self):
+        dice = Dice()
+        dice.set_values_for_test(2, 6)
+        self.assertEqual(dice.get_values(), (2, 6))
+
+    def test_get_moves_for_double(self):
+        dice = Dice()
+        dice.set_values_for_test(5, 5)
+        self.assertEqual(dice.get_moves(), [5, 5, 5, 5])
+
+    def test_get_moves_for_non_double(self):
+        dice = Dice()
+        dice.set_values_for_test(2, 4)
+        self.assertEqual(dice.get_moves(), [2, 4])

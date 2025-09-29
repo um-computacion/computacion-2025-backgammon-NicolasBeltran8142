@@ -53,6 +53,3 @@ class TestValidacion(unittest.TestCase):
         tablero[5] = Punto("Jugador2", 1)
         tablero[8] = Punto(None, 0)
         self.assertFalse(validar_movimiento(tablero, "Jugador1", 5, 8, 3))
-
-if __name__ == "__main__":
-    unittest.main()

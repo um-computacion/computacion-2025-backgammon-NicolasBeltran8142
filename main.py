@@ -1,58 +1,58 @@
-from core.board import Board
-from core.player import Jugador
+from core.game import Game
 
-class TurnManager:
-    def __init__(self, jugador1, jugador2):
-        self.jugadores = [jugador1, jugador2]
-        self.indice_actual = 0
+def mostrar_tablero(game):
+    print("\n🧩 TABLERO BACKGAMMON")
+    print("ZONA SUPERIOR (24 → 13):")
+    for i in range(23, 11, -1):
+        punto = game.board._puntos_[i]
+        contenido = "".join([f._color_[0].upper() for f in punto])
+        print(f"{i:2}: {contenido:10}", end=" | ")
+    print("\n" + "-"*80)
+    print("ZONA INFERIOR (12 → 1):")
+    for i in range(0, 12):
+        punto = game.board._puntos_[i]
+        contenido = "".join([f._color_[0].upper() for f in punto])
+        print(f"{i:2}: {contenido:10}", end=" | ")
+    print("\n")
 
-    def jugador_actual(self):
-        return self.jugadores[self.indice_actual]
-
-    def siguiente_turno(self):
-        self.indice_actual = (self.indice_actual + 1) % 2
-
-    def mostrar_turno(self):
-        jugador = self.jugador_actual()
-        print(f"\n🎲 Turno de: {jugador.nombre} ({jugador.color})")
-
-def iniciar_juego():
-    jugador1 = Jugador("Jugador 1", "blanco")
-    jugador2 = Jugador("Jugador 2", "negro")
-    tablero = Board()
-    turnos = TurnManager(jugador1, jugador2)
-
-    tablero.inicializar_fichas()
-
-    print("🎮 Jugadores:")
-    print(f"{jugador1.nombre} ({jugador1.color})")
-    print(f"{jugador2.nombre} ({jugador2.color})")
-
-    while True:
-        tablero.mostrar_tablero()
-        turnos.mostrar_turno()
-        jugador = turnos.jugador_actual()
-
-        tiene_en_barra = any(f._position_ == "bar" for f in jugador.fichas)
-        if tiene_en_barra:
-            puede_reingresar = tablero.intentar_reingreso(jugador.color)
-            if not puede_reingresar:
-                print("⏭️ Turno perdido: no puede reingresar ninguna ficha")
-                turnos.siguiente_turno()
-                continue
-            else:
-                print("🔁 Reingresó una ficha desde la barra")
-        else:
-            print("🟢 Listo para mover ficha (simulado)")
-            # Acá podrías pedir origen/destino y usar tablero.mover_ficha()
-
-        turnos.siguiente_turno()
+def mostrar_estado(game):
+    jugador = game.jugador_actual()
+    print(f"🎲 Turno de: {jugador.nombre} ({jugador.color})")
+    print(f"Último tiro: {game.last_roll}")
+    print(f"Movimientos disponibles: {game.available_moves}")
+    print(f"Fichas en barra: {len(game.fichas_en_barra(jugador.color))}")
+    print(f"Fichas borneadas: {len(game.fichas_borneadas(jugador.color))}")
+    print("-"*40)
 
 def main():
-    try:
-        iniciar_juego()
-    except KeyboardInterrupt:
-        print("\n👋 Juego terminado por el usuario.")
+    juego = Game()
+    print("🎮 Bienvenido a Backgammon CLI")
+    juego.tirar_dados()
+
+    while True:
+        mostrar_tablero(juego)
+        mostrar_estado(juego)
+
+        try:
+            origen = int(input("Desde qué punto querés mover? (0–23): "))
+            destino = int(input("A qué punto querés mover? (0–23): "))
+        except ValueError:
+            print("❌ Entrada inválida. Usá números entre 0 y 23.")
+            continue
+
+        color = juego.jugador_actual().color
+
+        if juego.mover_ficha(origen, destino, color):
+            print("✅ Movimiento realizado.")
+        else:
+            print("❌ Movimiento inválido.")
+
+        ganador = juego.verificar_ganador()
+        if ganador:
+            print(f"🏆 ¡{ganador} ha ganado el juego!")
+            break
+
+        juego.cambiar_turno()
 
 if __name__ == "__main__":
     main()

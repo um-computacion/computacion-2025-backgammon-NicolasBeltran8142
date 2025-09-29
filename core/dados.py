@@ -19,7 +19,6 @@ class Dice:
     def set_values_for_test(self, val1, val2):
         self.__values__ = (val1, val2)
 
-def obtener_movimientos(dado1, dado2):
-    if dado1 == dado2:
-        return [dado1] * 4
-    return [dado1, dado2]
+    def get_moves(self):
+        d1, d2 = self.__values__
+        return [d1] * 4 if d1 == d2 else [d1, d2]
