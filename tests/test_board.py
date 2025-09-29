@@ -154,6 +154,3 @@ class TestFormatoTablero(unittest.TestCase):
         board = Board()
         self.assertEqual(board._puntos_[10], [])
         board.mostrar_tablero()  
-
-if __name__ == "__main__":
-    unittest.main()

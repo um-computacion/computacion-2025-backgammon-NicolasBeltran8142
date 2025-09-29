@@ -36,10 +36,8 @@ class TestJugador(unittest.TestCase):
         self.assertTrue(self.jugador.ha_ganado())
     def test_turn_alternation(self):
         tm = TurnManager(Jugador("A", "white"), Jugador("B", "black"))
-        self.assertEqual(tm.current_player().nombre, "A")
-        tm.next_turn()
-        self.assertEqual(tm.current_player().nombre, "B")
-        tm.next_turn()
-        self.assertEqual(tm.current_player().nombre, "A")
-if __name__ == "__main__":
-    unittest.main()
+        self.assertEqual(tm.jugador_actual().nombre, "A")
+        tm.siguiente_turno()
+        self.assertEqual(tm.jugador_actual().nombre, "B")
+        tm.siguiente_turno()
+        self.assertEqual(tm.jugador_actual().nombre, "A")
