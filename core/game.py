@@ -14,10 +14,6 @@ class Game:
     def __init__(self):
         """
         Inicializa el juego con tablero, dados, jugadores y gestor de turnos.
-
-        - Crea el tablero y lo inicializa con fichas.
-        - Asigna 15 fichas a cada jugador en sus posiciones iniciales.
-        - Prepara el historial de jugadas y el estado de los dados.
         """
         self.board = Board()
         self.dice = Dice()
@@ -34,8 +30,6 @@ class Game:
     def _asignar_fichas_a_jugadores(self):
         """
         Asigna las posiciones iniciales de las fichas a cada jugador.
-
-        Las posiciones están basadas en la configuración estándar de Backgammon.
         """
         posiciones = {
             "blanco": [0]*2 + [11]*5 + [16]*3 + [18]*5,
@@ -75,13 +69,6 @@ class Game:
     def fichas_en_punto(self, punto, color):
         """
         Devuelve las fichas de un jugador en un punto específico del tablero.
-
-        Args:
-            punto (int): Índice del punto en el tablero.
-            color (str): Color del jugador ("blanco" o "negro").
-
-        Returns:
-            list: Lista de fichas en ese punto.
         """
         jugador = self.jugador1 if color == "blanco" else self.jugador2
         return [f for f in jugador.fichas if f._position_ == punto]
@@ -89,12 +76,6 @@ class Game:
     def fichas_en_barra(self, color):
         """
         Devuelve las fichas del jugador que están en la barra.
-
-        Args:
-            color (str): Color del jugador.
-
-        Returns:
-            list: Lista de fichas en la barra.
         """
         jugador = self.jugador1 if color == "blanco" else self.jugador2
         return [f for f in jugador.fichas if f._position_ == "bar"]
@@ -102,33 +83,38 @@ class Game:
     def fichas_borneadas(self, color):
         """
         Devuelve las fichas del jugador que ya fueron retiradas del tablero.
-
-        Args:
-            color (str): Color del jugador.
-
-        Returns:
-            list: Lista de fichas fuera del tablero.
         """
         jugador = self.jugador1 if color == "blanco" else self.jugador2
         return [f for f in jugador.fichas if f._position_ == "off"]
 
+    def puntos_validos_de_origen(self, color):
+        """
+        Devuelve los puntos del tablero donde el jugador tiene fichas disponibles para mover.
+        """
+        return [p for p in range(24) if self.fichas_en_punto(p, color)]
+
+    def puede_mover(self, origen, destino, color):
+        """
+        Verifica si el movimiento es legal según las reglas básicas.
+        """
+        if self.fichas_en_barra(color):
+            return origen == "bar"
+        if destino < 0 or destino > 23:
+            return False
+        if destino not in [origen + m for m in self.available_moves]:
+            return False
+        destino_fichas = self.board._puntos_[destino]
+        if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) > 1:
+            return False
+        return True
+
     def mover_ficha(self, origen, destino, color):
         """
-        Mueve una ficha del color dado desde origen a destino.
-
-        Valida que el movimiento sea legal según las reglas estándar:
-        - Debe haber una ficha del color en origen.
-        - No puede moverse a un punto bloqueado (más de una ficha rival).
-        - Si hay una ficha rival sola en destino, la captura y la manda a la barra.
-
-        Args:
-            origen (int): Punto de origen.
-            destino (int): Punto de destino.
-            color (str): Color del jugador.
-
-        Returns:
-            bool: True si el movimiento fue exitoso, False si fue inválido.
+        Mueve una ficha del color dado desde origen a destino, aplicando captura si corresponde.
         """
+        if not self.puede_mover(origen, destino, color):
+            return False
+
         fichas = self.fichas_en_punto(origen, color)
         if not fichas:
             return False
@@ -144,7 +130,12 @@ class Game:
 
         ficha._position_ = destino
         self.board.mover_ficha(origen, destino, color)
-        self.historial.append((color, origen, destino))
+        self.historial.append({
+            "jugador": color,
+            "origen": origen,
+            "destino": destino,
+            "dados": self.last_roll
+        })
         return True
 
     def verificar_ganador(self):
@@ -159,3 +150,13 @@ class Game:
         elif self.jugador2.ha_ganado():
             return self.jugador2.nombre
         return None
+
+    def mostrar_estado(self):
+        """
+        Imprime el estado actual del juego en consola.
+        """
+        jugador = self.jugador_actual()
+        print(f"\n🔁 Turno de: {jugador.nombre} ({jugador.color})")
+        print(f"📍 Fichas en barra: {len(self.fichas_en_barra(jugador.color))}")
+        print(f"🎯 Fichas borneadas: {len(self.fichas_borneadas(jugador.color))}")
+        print(f"📦 Movimientos disponibles: {self.available_moves}")
