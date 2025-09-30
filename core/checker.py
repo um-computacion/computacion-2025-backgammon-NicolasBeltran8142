@@ -1,9 +1,14 @@
 class Checker:
-    def __init__(self, color, position):
+    """
+    Representa una ficha del juego. Tiene color y posición actual.
+    La posición puede ser un número (0–23), 'bar' (capturada) o 'off' (borneada).
+    """
+
+    def __init__(self, color, position=None):
         self._color_ = color
         self._position_ = position
 
-        if position is not None and not (0 <= position < 24):
+        if position not in range(24) and position not in [None, "bar", "off"]:
             raise ValueError("Posición inválida")
 
     @property
@@ -15,15 +20,29 @@ class Checker:
         return self._position_
 
     def mover_a(self, nueva_posicion):
-        if not (0 <= nueva_posicion < 24):
+        if nueva_posicion not in range(24) and nueva_posicion not in ["bar", "off"]:
             raise ValueError("Nueva posición inválida")
         self._position_ = nueva_posicion
 
     def __repr__(self):
         return f"Checker({self._color_}, {self._position_})"
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, Checker) and
+            self._color_ == other._color_ and
+            self._position_ == other._position_
+        )
+
+    def __hash__(self):
+        return hash((self._color_, self._position_))
+
 
 class Punto:
+    """
+    Representa un punto del tablero. Puede tener fichas de un jugador.
+    """
+
     def __init__(self, jugador=None, cantidad=0):
         self._jugador_ = jugador
         self._cantidad_ = cantidad
@@ -42,7 +61,10 @@ class Punto:
 
 
 def validar_movimiento(tablero, jugador, origen, destino, valor_dado):
-    if not (0 <= origen < len(tablero)) or not (0 <= destino < len(tablero)):
+    """
+    Valida si un movimiento es legal según las reglas básicas del juego.
+    """
+    if origen not in range(24) or destino not in range(24):
         return False
 
     punto_origen = tablero[origen]

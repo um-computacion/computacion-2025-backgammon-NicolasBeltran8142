@@ -24,31 +24,61 @@ class TestGame(unittest.TestCase):
         self.assertTrue(len(self.game.available_moves) in [2, 4])
 
     def test_fichas_en_barra_vacia_al_inicio(self):
-        blanco_barra = self.game.fichas_en_barra("blanco")
-        negro_barra = self.game.fichas_en_barra("negro")
-        self.assertEqual(len(blanco_barra), 0)
-        self.assertEqual(len(negro_barra), 0)
+        self.assertEqual(len(self.game.fichas_en_barra("blanco")), 0)
+        self.assertEqual(len(self.game.fichas_en_barra("negro")), 0)
 
-    def test_mover_ficha_valido_actualiza_posicion(self):
-        # Forzamos una ficha blanca en punto 0 y destino libre en 1
+    def test_mover_ficha_valido_actualiza_posicion_y_tablero(self):
         ficha = self.game.fichas_en_punto(0, "blanco")[0]
         origen = ficha._position_
         destino = origen + 1
+        self.game.available_moves = [1]
         resultado = self.game.mover_ficha(origen, destino, "blanco")
         self.assertTrue(resultado)
         self.assertEqual(ficha._position_, destino)
+        self.assertIn(ficha, self.game.board._puntos_[destino])
 
     def test_mover_ficha_invalido_sin_ficha_en_origen(self):
-        resultado = self.game.mover_ficha(10, 11, "blanco")  # No hay ficha blanca en 10
+        self.game.available_moves = [1]
+        resultado = self.game.mover_ficha(10, 11, "blanco")
         self.assertFalse(resultado)
 
-    def test_verificar_ganador_none_al_inicio(self):
-        ganador = self.game.verificar_ganador()
-        self.assertIsNone(ganador)
+    def test_puede_mover_valido(self):
+        self.game.available_moves = [1]
+        origen = 0
+        destino = origen + 1
+        self.assertTrue(self.game.puede_mover(origen, destino, "blanco"))
 
-    def test_historial_se_actualiza_con_movimiento(self):
+    def test_puede_mover_invalido_fuera_de_rango(self):
+        self.game.available_moves = [1]
+        self.assertFalse(self.game.puede_mover(0, 24, "blanco"))
+
+    def test_verificar_ganador_none_al_inicio(self):
+        self.assertIsNone(self.game.verificar_ganador())
+
+    def test_historial_se_actualiza_con_dict(self):
         ficha = self.game.fichas_en_punto(0, "blanco")[0]
         origen = ficha._position_
         destino = origen + 1
+        self.game.available_moves = [1]
+        self.game.last_roll = (1, 2)
         self.game.mover_ficha(origen, destino, "blanco")
-        self.assertIn(("blanco", origen, destino), self.game.historial)
+        ultimo = self.game.historial[-1]
+        self.assertEqual(ultimo["jugador"], "blanco")
+        self.assertEqual(ultimo["origen"], origen)
+        self.assertEqual(ultimo["destino"], destino)
+        self.assertEqual(ultimo["dados"], (1, 2))
+
+    def test_simular_turno_completo(self):
+        self.game.tirar_dados()
+        jugador = self.game.jugador_actual()
+        origenes = self.game.puntos_validos_de_origen(jugador.color)
+        for move in self.game.available_moves:
+            for origen in origenes:
+                destino = origen + move
+                if self.game.puede_mover(origen, destino, jugador.color):
+                    resultado = self.game.mover_ficha(origen, destino, jugador.color)
+                    self.assertTrue(resultado)
+                    return  # Solo probamos un movimiento válido
+
+if __name__ == "__main__":
+    unittest.main()
