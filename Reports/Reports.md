@@ -1,16 +1,15 @@
-
-
-
 Name                    Stmts   Miss  Cover   Missing
 -----------------------------------------------------
 core\__init__.py            0      0   100%
 core\board.py              77      4    95%   29-32
-core\checker.py            48      9    81%   4, 6, 12, 16, 19-21, 24, 64
-core\dados.py              19      0   100%
-core\player.py             26      2    92%   9, 33
-tests\test_board.py       122      1    99%   159
-tests\test_checker.py      48      1    98%   58
-tests\test_dados.py        29      1    97%   36
-tests\test_player.py       39      1    97%   45
+core\checker.py            46      8    83%   7, 11, 15, 18-20, 23, 63
+core\dados.py              18      0   100%
+core\game.py               60      8    87%   112-113, 140-143, 158, 160
+core\player.py             29      3    90%   12, 38-39
+tests\test_board.py       120      0   100%
+tests\test_checker.py      46      0   100%
+tests\test_dados.py        32      0   100%
+tests\test_game.py         43      0   100%
+tests\test_player.py       37      0   100%
 -----------------------------------------------------
-TOTAL                     408     19    95%
+TOTAL                     508     23    95%
