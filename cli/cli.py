@@ -66,7 +66,10 @@ def ejecutar_cli():
                 origen = ficha._position_
                 if destino in destinos:
                     exito = juego.mover_ficha(origen, destino, color)
-                    print("Movimiento exitoso" if exito else "Movimiento inválido")
+                    if exito:
+                        print("Movimiento exitoso")  # ← Este mensaje es clave para el test
+                    else:
+                        print("Movimiento inválido")
                 else:
                     print("Destino no permitido para esa ficha.")
             except (ValueError, IndexError):

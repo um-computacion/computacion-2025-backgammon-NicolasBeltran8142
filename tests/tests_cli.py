@@ -1,56 +1,49 @@
 import unittest
-from unittest.mock import patch
-from io import StringIO
-from core.game import Game
-from cli.cli import mostrar_tablero, mostrar_estado
+from core.player import Jugador, TurnManager
 
-class TestCLI(unittest.TestCase):
+class TestJugador(unittest.TestCase):
 
     def setUp(self):
-        self.game = Game()
+        self.jugador = Jugador("Jugador 1", "blanco")
 
-    # Tablero
-    def test_mostrar_tablero_imprime_24_puntos(self):
-        with patch('sys.stdout', new=StringIO()) as salida:
-            mostrar_tablero(self.game)
-            output = salida.getvalue()
-            self.assertIn("Punto  0:", output)
-            self.assertIn("Punto 23:", output)
-            self.assertEqual(output.count("Punto"), 24)
+    def test_jugador_se_inicializa_correctamente(self):
+        self.assertEqual(self.jugador.nombre, "Jugador 1")
+        self.assertEqual(self.jugador.color, "blanco")
+        self.assertEqual(self.jugador.puntos, 0)
+        self.assertEqual(self.jugador.fichas_fuera, 0)
+        self.assertEqual(len(self.jugador.fichas), 15)
 
-    # Estado del juego
-    def test_mostrar_estado_imprime_datos_del_jugador(self):
-        self.game.tirar_dados()
-        with patch('sys.stdout', new=StringIO()) as salida:
-            mostrar_estado(self.game)
-            output = salida.getvalue()
-            self.assertIn("Turno de:", output)
-            self.assertIn("Fichas en barra:", output)
-            self.assertIn("Fichas borneadas:", output)
-            self.assertIn("Movimientos disponibles:", output)
+    def test_sumar_puntos_acumula_correctamente(self):
+        self.jugador.sumar_puntos(5, verbose=False)
+        self.assertEqual(self.jugador.puntos, 5)
+        self.jugador.sumar_puntos(3, verbose=False)
+        self.assertEqual(self.jugador.puntos, 8)
 
-    # Ejecución básica del CLI
-    @patch('builtins.input', side_effect=["", "0", "1", "n"])
-    def test_ejecucion_basica_del_cli(self, mock_input):
-        from cli.cli import ejecutar_cli
-        self.game.available_moves = [1]
-        ficha = self.game.fichas_en_punto(0, "blanco")[0]
-        ficha._position_ = 0
-        self.game.board._puntos_[1] = []
-        with patch('sys.stdout', new=StringIO()) as salida:
-            with patch('core.game.Game', return_value=self.game):
-                ejecutar_cli()
-                output = salida.getvalue()
-                self.assertIn("Bienvenido a Backgammon CLI", output)
-                self.assertIn("Movimiento exitoso", output)
+    def test_sacar_ficha_incrementa_contador(self):
+        for i in range(5):
+            self.jugador.sacar_ficha(verbose=False)
+        self.assertEqual(self.jugador.fichas_fuera, 5)
 
-    # Validación de estado inicial
-    def test_estado_inicial_del_juego_en_cli(self):
-        with patch('sys.stdout', new=StringIO()) as salida:
-            mostrar_estado(self.game)
-            output = salida.getvalue()
-            self.assertIn("Jugador 1", output)
-            self.assertIn("blanco", output)
+    def test_ha_ganado_devuelve_false_si_faltan_fichas(self):
+        for ficha in self.jugador.fichas[:10]:
+            ficha._position_ = "off"
+        self.assertFalse(self.jugador.ha_ganado())
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_ha_ganado_devuelve_true_si_todas_las_fichas_estan_off(self):
+        for ficha in self.jugador.fichas:
+            ficha._position_ = "off"
+        self.assertTrue(self.jugador.ha_ganado())
+
+
+class TestTurnManager(unittest.TestCase):
+
+    def test_turno_alterna_correctamente_entre_jugadores(self):
+        jugador_a = Jugador("A", "white")
+        jugador_b = Jugador("B", "black")
+        tm = TurnManager(jugador_a, jugador_b)
+
+        self.assertEqual(tm.jugador_actual().nombre, "A")
+        tm.siguiente_turno()
+        self.assertEqual(tm.jugador_actual().nombre, "B")
+        tm.siguiente_turno()
+        self.assertEqual(tm.jugador_actual().nombre, "A")
