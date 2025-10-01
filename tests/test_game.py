@@ -1,5 +1,4 @@
 import unittest
-import contextlib
 from core.game import Game
 
 class TestGame(unittest.TestCase):
@@ -7,7 +6,7 @@ class TestGame(unittest.TestCase):
     def setUp(self):
         self.game = Game()
 
-    # 🔁 Turnos y jugadores
+    # Turnos
     def test_jugador_actual_es_jugador1_al_inicio(self):
         jugador = self.game.jugador_actual()
         self.assertEqual(jugador.nombre, "Jugador 1")
@@ -20,13 +19,13 @@ class TestGame(unittest.TestCase):
         self.assertNotEqual(jugador1, jugador2)
         self.assertEqual(jugador2.color, "negro")
 
-    # 🎲 Dados y movimientos
+    # Dados
     def test_tirar_dados_actualiza_last_roll_y_available_moves(self):
         resultado = self.game.tirar_dados()
         self.assertEqual(self.game.last_roll, resultado)
         self.assertTrue(len(self.game.available_moves) in [2, 4])
 
-    # 📍 Estado inicial
+    # Estado inicial
     def test_fichas_en_barra_vacia_al_inicio(self):
         self.assertEqual(len(self.game.fichas_en_barra("blanco")), 0)
         self.assertEqual(len(self.game.fichas_en_barra("negro")), 0)
@@ -35,7 +34,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.fichas_borneadas("blanco")), 0)
         self.assertEqual(len(self.game.fichas_borneadas("negro")), 0)
 
-    # ➡ Movimiento válido
+    # Movimiento válido
     def test_mover_ficha_valido_actualiza_posicion_y_tablero(self):
         ficha = self.game.fichas_en_punto(0, "blanco")[0]
         origen = ficha._position_
@@ -46,7 +45,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(ficha._position_, destino)
         self.assertIn(ficha, self.game.board._puntos_[destino])
 
-    # ❌ Movimiento inválido
+    # Movimiento inválido
     def test_mover_ficha_invalido_sin_ficha_en_origen(self):
         self.game.available_moves = [1]
         resultado = self.game.mover_ficha(10, 11, "blanco")
@@ -54,37 +53,32 @@ class TestGame(unittest.TestCase):
 
     def test_mover_ficha_invalida_por_puede_mover_false(self):
         self.game.available_moves = [3]
-        # destino que no coincide con movimientos
         resultado = self.game.mover_ficha(0, 10, "blanco")
         self.assertFalse(resultado)
 
+    # Validación de movimiento
     def test_puede_mover_valido(self):
         self.game.available_moves = [1]
-        origen = 0
-        destino = origen + 1
-        self.assertTrue(self.game.puede_mover(origen, destino, "blanco"))
+        self.assertTrue(self.game.puede_mover(0, 1, "blanco"))
 
     def test_puede_mover_invalido_fuera_de_rango(self):
         self.game.available_moves = [1]
         self.assertFalse(self.game.puede_mover(0, 24, "blanco"))
 
     def test_puede_mover_falla_si_hay_fichas_en_barra_y_origen_distinto(self):
-        ficha = self.game.jugador1.fichas[0]
-        ficha._position_ = "bar"
+        self.game.jugador1.fichas[0]._position_ = "bar"
         self.assertFalse(self.game.puede_mover(0, 5, "blanco"))
 
     def test_puede_mover_falla_si_destino_ocupado_por_2_o_mas_rivales(self):
         self.game.available_moves = [1]
-        origen = 0
         destino = 1
-        # poner dos negras en destino
         negras = self.game.fichas_en_punto(5, "negro")[:2]
         for f in negras:
             f._position_ = destino
         self.game.board._puntos_[destino] = negras
-        self.assertFalse(self.game.puede_mover(origen, destino, "blanco"))
+        self.assertFalse(self.game.puede_mover(0, destino, "blanco"))
 
-    # 🥊 Captura
+    # Captura
     def test_mover_ficha_con_captura_envia_rival_a_barra(self):
         ficha_blanca = self.game.fichas_en_punto(0, "blanco")[0]
         ficha_negra = self.game.fichas_en_punto(5, "negro")[0]
@@ -97,7 +91,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(ficha_negra._position_, "bar")
         self.assertIn(ficha_blanca, self.game.board._puntos_[1])
 
-    # 📦 Historial
+    # Historial
     def test_historial_se_actualiza_correctamente(self):
         ficha = self.game.fichas_en_punto(0, "blanco")[0]
         origen = ficha._position_
@@ -111,7 +105,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(ultimo["destino"], destino)
         self.assertEqual(ultimo["dados"], (1, 2))
 
-    # 🧪 Simulación de turno
+    # Simulación de turno
     def test_simular_turno_completo_con_movimiento_valido(self):
         self.game.tirar_dados()
         jugador = self.game.jugador_actual()
@@ -125,11 +119,11 @@ class TestGame(unittest.TestCase):
                     return
 
     def test_puntos_validos_de_origen_devuelve_puntos_con_fichas(self):
-        puntos_blanco = self.game.puntos_validos_de_origen("blanco")
-        self.assertTrue(all(isinstance(p, int) for p in puntos_blanco))
-        self.assertGreater(len(puntos_blanco), 0)
+        puntos = self.game.puntos_validos_de_origen("blanco")
+        self.assertTrue(all(isinstance(p, int) for p in puntos))
+        self.assertGreater(len(puntos), 0)
 
-    # 🏆 Victoria
+    # Victoria
     def test_verificar_ganador_none_al_inicio(self):
         self.assertIsNone(self.game.verificar_ganador())
 

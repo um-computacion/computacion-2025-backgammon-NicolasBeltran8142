@@ -11,16 +11,19 @@ class Jugador:
     def __str__(self):
         return f"{self.nombre} juega con fichas {self.color}"
 
-    def sumar_puntos(self, cantidad):
+    def sumar_puntos(self, cantidad, verbose=True):
         self.puntos += cantidad
-        print(f"{self.nombre} suma {cantidad} puntos. Total: {self.puntos}")
+        if verbose:
+            print(f"{self.nombre} suma {cantidad} puntos. Total: {self.puntos}")
 
-    def sacar_ficha(self):
+    def sacar_ficha(self, verbose=True):
         self.fichas_fuera += 1
-        print(f"{self.nombre} ha sacado una ficha. Total fuera: {self.fichas_fuera}")
+        if verbose:
+            print(f"{self.nombre} ha sacado una ficha. Total fuera: {self.fichas_fuera}")
 
     def ha_ganado(self):
-        return self.fichas_fuera >= 15
+        # Gana si todas sus fichas están borneadas (posición "off")
+        return all(f._position_ == "off" for f in self.fichas)
 
 
 class TurnManager:
@@ -31,9 +34,10 @@ class TurnManager:
     def jugador_actual(self):
         return self.jugadores[self.indice_actual]
 
-    def siguiente_turno(self):  # ← Este es el método correcto
+    def siguiente_turno(self):
         self.indice_actual = (self.indice_actual + 1) % 2
 
-    def mostrar_turno(self):
-        jugador = self.jugador_actual()
-        print(f"\n🎲 Turno de: {jugador.nombre} ({jugador.color})")
+    def mostrar_turno(self, verbose=True):
+        if verbose:
+            jugador = self.jugador_actual()
+            print(f"\nTurno de: {jugador.nombre} ({jugador.color})")

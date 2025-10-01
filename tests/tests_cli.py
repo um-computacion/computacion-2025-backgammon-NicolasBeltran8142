@@ -9,7 +9,7 @@ class TestCLI(unittest.TestCase):
     def setUp(self):
         self.game = Game()
 
-    # 📦 Tablero
+    # Tablero
     def test_mostrar_tablero_imprime_24_puntos(self):
         with patch('sys.stdout', new=StringIO()) as salida:
             mostrar_tablero(self.game)
@@ -18,7 +18,7 @@ class TestCLI(unittest.TestCase):
             self.assertIn("Punto 23:", output)
             self.assertEqual(output.count("Punto"), 24)
 
-    # 🔁 Estado del juego
+    # Estado del juego
     def test_mostrar_estado_imprime_datos_del_jugador(self):
         self.game.tirar_dados()
         with patch('sys.stdout', new=StringIO()) as salida:
@@ -29,11 +29,10 @@ class TestCLI(unittest.TestCase):
             self.assertIn("Fichas borneadas:", output)
             self.assertIn("Movimientos disponibles:", output)
 
-    # 🎲 Simulación de entrada
-    @patch('builtins.input', side_effect=["", "0", "s"])
+    # Ejecución básica del CLI
+    @patch('builtins.input', side_effect=["", "0", "1", "n"])
     def test_ejecucion_basica_del_cli(self, mock_input):
         from cli.cli import ejecutar_cli
-        # Forzamos un movimiento simple
         self.game.available_moves = [1]
         ficha = self.game.fichas_en_punto(0, "blanco")[0]
         ficha._position_ = 0
@@ -45,7 +44,7 @@ class TestCLI(unittest.TestCase):
                 self.assertIn("Bienvenido a Backgammon CLI", output)
                 self.assertIn("Movimiento exitoso", output)
 
-    # 🧠 Validación de flujo
+    # Validación de estado inicial
     def test_estado_inicial_del_juego_en_cli(self):
         with patch('sys.stdout', new=StringIO()) as salida:
             mostrar_estado(self.game)
