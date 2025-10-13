@@ -1,12 +1,74 @@
 from core.game import Game
 
 def mostrar_tablero(juego):
+    board = juego.board
+    puntos = board._puntos_
+
+    def get_checker_char(color):
+        return color[0].upper() if color else " "
+
     print("\nEstado del tablero:")
-    for i in range(24):
-        fichas = juego.board._puntos_[i]
-        contenido = "".join([f._color_[0].upper() for f in fichas])
-        print(f"Punto {i:2}: {contenido or '-'}")
-    print("-" * 30)
+    print(" 13  14  15  16  17  18   BAR   19  20  21  22  23  24")
+    print("+---+---+---+---+---+---+------+---+---+---+---+---+---+")
+
+    fichas_blancas = juego.fichas_en_barra("blanco")
+    fichas_negras = juego.fichas_en_barra("negro")
+    barra = fichas_blancas + fichas_negras
+
+    for i in range(5):
+        fila_izq = []
+        for p in range(12, 18):
+            stack = puntos[p]
+            char = " "
+            if len(stack) > i:
+                char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+            fila_izq.append(f" {char} ")
+
+        barra_char = " "
+        if len(barra) > i:
+            barra_char = get_checker_char(barra[i]._color_)
+
+        fila_der = []
+        for p in range(18, 24):
+            stack = puntos[p]
+            char = " "
+            if len(stack) > i:
+                char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+            fila_der.append(f" {char} ")
+
+        print(f"|{'|'.join(fila_izq)}|  {barra_char}  |{'|'.join(fila_der)}|")
+
+    print("+---+---+---+---+---+---+------+---+---+---+---+---+---+")
+    print(" 12  11  10   9   8   7   BAR    6   5   4   3   2   1")
+
+    for i in range(4, -1, -1):
+        fila_izq = []
+        for p in range(11, 5, -1):
+            stack = puntos[p]
+            char = " "
+            if len(stack) > i:
+                char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+            fila_izq.append(f" {char} ")
+
+        barra_char = " "
+        if len(barra) > i + 5:  # mostrar las siguientes fichas si hay más
+            barra_char = get_checker_char(barra[i + 5]._color_)
+
+        fila_der = []
+        for p in range(5, -1, -1):
+            stack = puntos[p]
+            char = " "
+            if len(stack) > i:
+                char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+            fila_der.append(f" {char} ")
+
+        print(f"|{'|'.join(fila_izq)}|  {barra_char}  |{'|'.join(fila_der)}|")
+
+    print("+---+---+---+---+---+---+------+---+---+---+---+---+---+")
+
+    home_blanco = len(juego.fichas_borneadas("blanco"))
+    home_negro = len(juego.fichas_borneadas("negro"))
+    print(f"\nFichas borneadas: Blanco={home_blanco} {'W'*home_blanco} | Negro={home_negro} {'B'*home_negro}")
 
 def mostrar_estado(juego):
     jugador = juego.jugador_actual()
@@ -40,46 +102,50 @@ def ejecutar_cli():
         mostrar_tablero(juego)
         mostrar_estado(juego)
 
-        input("Presiona Enter para tirar los dados...")
+        input("Presioná Enter para tirar los dados...")
         juego.tirar_dados()
-        mostrar_estado(juego)
 
-        jugador = juego.jugador_actual()
-        color = jugador.color
+        while juego.available_moves:
+            mostrar_tablero(juego)
+            mostrar_estado(juego)
 
-        fichas_disponibles = fichas_movibles(juego, color)
+            jugador = juego.jugador_actual()
+            color = jugador.color
+            fichas_disponibles = fichas_movibles(juego, color)
 
-        if not fichas_disponibles:
-            print("No hay movimientos posibles este turno.")
-        else:
+            if not fichas_disponibles:
+                print("No hay movimientos posibles con los dados restantes.")
+                break
+
             print("\nFichas disponibles para mover (solo la ficha superior de cada punto):")
             for i, (ficha, destinos) in enumerate(fichas_disponibles):
-                print(f"{i}: Ficha en punto {ficha._position_} → posibles destinos: {destinos}")
+                print(f"{i}: Ficha en punto {ficha._position_} → posibles destinos: {sorted(set(destinos))}")
 
             try:
                 eleccion = int(input("Seleccioná el número de ficha que querés mover: "))
                 ficha, destinos = fichas_disponibles[eleccion]
                 print(f"\nPosibles destinos para la ficha en {ficha._position_}:")
-                for d in destinos:
+                for d in sorted(set(destinos)):
                     print(f"- {d}")
                 destino = int(input("Seleccioná destino: "))
                 origen = ficha._position_
                 if destino in destinos:
                     exito = juego.mover_ficha(origen, destino, color)
                     if exito:
-                        print("Movimiento exitoso")  # ← Este mensaje es clave para el test
+                        print("Movimiento exitoso.")
                     else:
-                        print("Movimiento inválido")
+                        print("Movimiento inválido.")
                 else:
                     print("Destino no permitido para esa ficha.")
             except (ValueError, IndexError):
                 print("Entrada inválida. Intenta de nuevo.")
 
-        if juego.verificar_ganador():
-            print(f"\n{juego.verificar_ganador()} ha ganado el juego!")
+        ganador = juego.verificar_ganador()
+        if ganador:
+            print(f"\n{ganador} ha ganado el juego!")
             break
 
-        continuar = input("\n¿Pasar al siguiente turno? (s/n): ")
+        continuar = input("\n¿Pasar al siguiente turno?(¡¡Darle a no cerrara el juego!!) (s/n): ")
         if continuar.lower() != "s":
             print("Fin del juego. Gracias por jugar.")
             break
