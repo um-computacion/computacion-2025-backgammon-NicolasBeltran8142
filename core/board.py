@@ -1,35 +1,19 @@
 from core.checker import Checker
 
 class Board:
-    
     def __init__(self):
         self._puntos_ = [[] for _ in range(24)]
+        self.historial_de_jugadas = []
 
     def inicializar_fichas(self):
-        # Blancas
-        for _ in range(2):
-            self._puntos_[0].append(Checker("blanco", 0))
-        for _ in range(5):
-            self._puntos_[11].append(Checker("blanco", 11))
-        for _ in range(3):
-            self._puntos_[16].append(Checker("blanco", 16))
-        for _ in range(5):
-            self._puntos_[18].append(Checker("blanco", 18))
-
-        # Negras
-        for _ in range(2):
-            self._puntos_[23].append(Checker("negro", 23))
-        for _ in range(5):
-            self._puntos_[12].append(Checker("negro", 12))
-        for _ in range(3):
-            self._puntos_[7].append(Checker("negro", 7))
-        for _ in range(5):
-            self._puntos_[5].append(Checker("negro", 5))
-    def mostrar_tablero(self):
-        print("\nEstado del tablero:")
-        for i, punto in enumerate(self.puntos):
-            contenido = "".join(["B" if f.color == "blanco" else "N" for f in punto])
-            print(f"Punto {i:2}: {contenido if contenido else '.'}")
+        posiciones = {
+            "blanco": {0: 2, 11: 5, 16: 3, 18: 5},
+            "negro": {23: 2, 12: 5, 7: 3, 5: 5}
+        }
+        for color, puntos in posiciones.items():
+            for punto, cantidad in puntos.items():
+                for _ in range(cantidad):
+                    self._puntos_[punto].append(Checker(color, punto))
 
     def mover_ficha(self, origen, destino, color):
         if not (0 <= origen < 24 and 0 <= destino < 24):
@@ -45,12 +29,59 @@ class Board:
         if ficha._color_ != color:
             raise ValueError(f"La ficha en el punto {origen} no es del color {color}")
 
-        if punto_destino and punto_destino[-1]._color_ != color:
-            raise ValueError(f"No se puede mover al punto {destino}, ocupado por el oponente")
+        captura = False
+        if punto_destino and punto_destino[-1]._color_ != color and len(punto_destino) == 1:
+            punto_destino.pop()
+            captura = True
 
         ficha._position_ = destino
         punto_origen.pop()
         punto_destino.append(ficha)
+
+        self.registrar_jugada(color, origen, destino, captura)
+
+    def eliminar_ficha_si_unica(self, punto, color):
+        if not (0 <= punto < 24):
+            raise ValueError("El punto debe estar entre 0 y 23")
+
+        casilla = self._puntos_[punto]
+        if len(casilla) == 1 and casilla[0]._color_ == color:
+            ficha = casilla.pop()
+            return ficha
+        else:
+            raise ValueError("No se puede eliminar la ficha: condiciones inválidas")
+
+    def puede_entrar_desde_bar(self, color, entrada):
+        punto = self._puntos_[entrada]
+        return not punto or punto[-1]._color_ == color or len(punto) < 2
+
+    def intentar_reingreso(self, color):
+        entradas = range(0, 6) if color == "blanco" else range(18, 24)
+        for entrada in entradas:
+            if self.puede_entrar_desde_bar(color, entrada):
+                self._puntos_[entrada].append(Checker(color, entrada))
+                print(f"{color} reingresa en el punto {entrada}")
+                return entrada
+        print(f"{color} no puede reingresar: todos los puntos están bloqueados.")
+        return None
+
+    def registrar_jugada(self, jugador, origen, destino, captura=False):
+        jugada = {
+            "jugador": jugador,
+            "origen": origen,
+            "destino": destino,
+            "captura": captura
+        }
+        self.historial_de_jugadas.append(jugada)
+
+    def mostrar_historial(self):
+        print("\nHistorial de jugadas:")
+        for j in self.historial_de_jugadas:
+            texto = f"{j['jugador']} movió de {j['origen']} a {j['destino']}"
+            if j["captura"]:
+                texto += " (captura)"
+            print(texto)
+
     def mostrar_tablero(self):
         print("\nBienvenido a Backgammon Compucation 2025\n")
 
@@ -69,45 +100,3 @@ class Board:
             "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
             for i in reversed(range(12))
         ]))
-    def eliminar_ficha_si_unica(self, punto, color):
-        if not (0 <= punto < 24):
-            raise ValueError("El punto debe estar entre 0 y 23")
-
-        casilla = self._puntos_[punto]
-        if len(casilla) == 1 and casilla[0]._color_ == color:
-            ficha = casilla.pop()
-            print(f"Se eliminó una ficha {color} del punto {punto}")
-            return ficha
-        else:
-            raise ValueError(f"No se puede eliminar la ficha del punto {punto}: está vacío, hay múltiples fichas o el color no coincide")
-    
-    def puede_entrar_desde_bar(self, color, entrada):
-        punto = self._puntos_[entrada]
-        if not punto:
-            return True
-        return punto[-1]._color_ == color or len(punto) < 2
-    def intentar_reingreso(self, color):
-        entradas = range(0, 6) if color == "blanco" else range(18, 24)
-
-        for entrada in entradas:
-            if self.puede_entrar_desde_bar(color, entrada):
-                self._puntos_[entrada].append(Checker(color, entrada))
-                print(f"{color} reenters at point {entrada}")
-                return True
-
-        print(f"{color} No se puede volver a entrar: todos los puntos de entrada están bloqueados. Se perdió el turno.")
-        return False
-
-
-
- 
-historial_de_jugadas = []
-       
-def registrar_jugada(jugador, origen, destino, captura=False):
-    jugada = {
-        "jugador": jugador,
-        "origen": origen,
-        "destino": destino,
-        "captura": captura
-    }
-    historial_de_jugadas.append(jugada)
