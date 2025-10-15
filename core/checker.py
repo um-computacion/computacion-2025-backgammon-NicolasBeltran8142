@@ -1,7 +1,11 @@
 class Checker:
     """
-    Representa una ficha del juego. Tiene color y posición actual.
-    La posición puede ser un número (0–23), 'bar' (capturada) o 'off' (borneada).
+    Represents a game piece (checker) with a color and current position.
+    The position can be:
+        - an integer from 0 to 23 (on the board),
+        - "bar" (captured),
+        - "off" (borne off),
+        - or None (unplaced).
     """
 
     def __init__(self, color, position=None):
@@ -9,19 +13,30 @@ class Checker:
         self._position_ = position
 
         if position not in range(24) and position not in [None, "bar", "off"]:
-            raise ValueError("Posición inválida")
+            raise ValueError("Invalid position")
 
     @property
     def color(self):
+        """Returns the color of the checker."""
         return self._color_
 
     @property
     def posicion(self):
+        """Returns the current position of the checker."""
         return self._position_
 
     def mover_a(self, nueva_posicion):
+        """
+        Moves the checker to a new position.
+
+        Args:
+            nueva_posicion (int or str): Target position (0–23, "bar", or "off").
+
+        Raises:
+            ValueError: If the position is invalid.
+        """
         if nueva_posicion not in range(24) and nueva_posicion not in ["bar", "off"]:
-            raise ValueError("Nueva posición inválida")
+            raise ValueError("Invalid new position")
         self._position_ = nueva_posicion
 
     def __repr__(self):
@@ -40,7 +55,11 @@ class Checker:
 
 class Punto:
     """
-    Representa un punto del tablero. Puede tener fichas de un jugador.
+    Represents a point on the board. It may contain checkers belonging to a player.
+
+    Attributes:
+        _jugador_ (str): The owner of the point.
+        _cantidad_ (int): Number of checkers on the point.
     """
 
     def __init__(self, jugador=None, cantidad=0):
@@ -48,21 +67,38 @@ class Punto:
         self._cantidad_ = cantidad
 
     def esta_vacio(self):
+        """Returns True if the point has no checkers."""
         return self._cantidad_ == 0
 
     def es_del_jugador(self, jugador):
+        """Returns True if the point belongs to the given player."""
         return self._jugador_ == jugador
 
     def es_del_oponente(self, jugador):
+        """Returns True if the point belongs to the opponent."""
         return self._jugador_ is not None and self._jugador_ != jugador
 
     def esta_bloqueado(self, jugador):
+        """
+        Returns True if the point is blocked for the given player.
+        A point is blocked if it belongs to the opponent and has more than one checker.
+        """
         return self.es_del_oponente(jugador) and self._cantidad_ > 1
 
 
 def validar_movimiento(tablero, jugador, origen, destino, valor_dado):
     """
-    Valida si un movimiento es legal según las reglas básicas del juego.
+    Validates whether a move is legal based on basic game rules.
+
+    Args:
+        tablero (list of Punto): The current board state.
+        jugador (str): The player's identifier ("Jugador1" or "Jugador2").
+        origen (int): Origin point index (0–23).
+        destino (int): Destination point index (0–23).
+        valor_dado (int): The value of the die used for the move.
+
+    Returns:
+        bool: True if the move is valid, False otherwise.
     """
     if origen not in range(24) or destino not in range(24):
         return False
