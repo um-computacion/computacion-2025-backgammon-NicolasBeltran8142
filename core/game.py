@@ -1,8 +1,6 @@
 from core.board import Board
 from core.dados import Dice
-from core.checker import Checker
 from core.player import Jugador, TurnManager
-import random
 
 class Game:
     def __init__(self):
@@ -29,10 +27,8 @@ class Game:
                 jugador.fichas[i]._position_ = punto
 
     def tirar_dados(self):
-        dado1 = random.randint(1, 6)
-        dado2 = random.randint(1, 6)
-        self.last_roll = [dado1, dado2]
-        self.available_moves = [dado1] * 4 if dado1 == dado2 else [dado1, dado2]
+        self.last_roll = self.dice.roll_dice()
+        self.available_moves = self.dice.get_moves()
         return self.last_roll
 
     def jugador_actual(self):
@@ -42,15 +38,15 @@ class Game:
         self.turnos.siguiente_turno()
 
     def fichas_en_punto(self, punto, color):
-        jugador = self.jugador1 if color == "blanco" else self.jugador2
+        jugador = self._jugador_por_color(color)
         return [f for f in jugador.fichas if f._position_ == punto]
 
     def fichas_en_barra(self, color):
-        jugador = self.jugador1 if color == "blanco" else self.jugador2
+        jugador = self._jugador_por_color(color)
         return [f for f in jugador.fichas if f._position_ == "bar"]
 
     def fichas_borneadas(self, color):
-        jugador = self.jugador1 if color == "blanco" else self.jugador2
+        jugador = self._jugador_por_color(color)
         return [f for f in jugador.fichas if f._position_ == "off"]
 
     def puntos_validos_de_origen(self, color):
@@ -75,16 +71,10 @@ class Game:
         if not self.puede_mover(origen, destino, color):
             return False
 
-        # Obtener la ficha a mover
-        if origen == "bar":
-            ficha = self.fichas_en_barra(color)[0]
-        else:
-            fichas = self.fichas_en_punto(origen, color)
-            if not fichas:
-                return False
-            ficha = fichas[0]
+        ficha = self._obtener_ficha_a_mover(origen, color)
+        if not ficha:
+            return False
 
-        # Captura si hay una sola ficha rival
         destino_fichas = self.board._puntos_[destino]
         if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) == 1:
             rival_color = "negro" if color == "blanco" else "blanco"
@@ -92,18 +82,13 @@ class Game:
             rival._position_ = "bar"
             self.board._puntos_[destino].pop()
 
-        # Mover la ficha
         ficha._position_ = destino
         self.board.mover_ficha(origen, destino, color)
 
-        # Calcular distancia usada
         distancia = self._calcular_distancia(origen, destino, color)
-
-        # Eliminar solo el dado exacto usado
         if distancia in self.available_moves:
             self.available_moves.remove(distancia)
 
-        # Registrar en historial
         self.historial.append({
             "jugador": color,
             "origen": origen,
@@ -112,6 +97,16 @@ class Game:
         })
 
         return True
+
+    def _obtener_ficha_a_mover(self, origen, color):
+        if origen == "bar":
+            fichas = self.fichas_en_barra(color)
+        else:
+            fichas = self.fichas_en_punto(origen, color)
+        return fichas[0] if fichas else None
+
+    def _jugador_por_color(self, color):
+        return self.jugador1 if color == "blanco" else self.jugador2
 
     def _calcular_distancia(self, origen, destino, color):
         if origen == "bar":
@@ -130,5 +125,5 @@ class Game:
         print(f"\nTurno de: {jugador.nombre} ({jugador.color})")
         print(f"Fichas en barra: {len(self.fichas_en_barra(jugador.color))}")
         print(f"Fichas borneadas: {len(self.fichas_borneadas(jugador.color))}")
-        print(f"Ultimo tiro: {self.last_roll}")
+        print(f"Último tiro: {self.last_roll}")
         print(f"Movimientos disponibles: {self.available_moves}")
