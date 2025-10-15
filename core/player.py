@@ -1,6 +1,11 @@
 from core.checker import Checker
 
 class Jugador:
+    """
+    Representa a un jugador del Backgammon.
+    Maneja nombre, color, fichas, puntos y estado de victoria.
+    """
+
     def __init__(self, nombre, color):
         self.nombre = nombre
         self.color = color
@@ -22,11 +27,20 @@ class Jugador:
             print(f"{self.nombre} ha sacado una ficha. Total fuera: {self.fichas_fuera}")
 
     def ha_ganado(self):
-        # Gana si todas sus fichas están borneadas (posición "off")
         return all(f._position_ == "off" for f in self.fichas)
+
+    def fichas_en_estado(self, estado):
+        return [f for f in self.fichas if f._position_ == estado]
+
+    def fichas_en_punto(self, punto):
+        return [f for f in self.fichas if f._position_ == punto]
 
 
 class TurnManager:
+    """
+    Administra el turno entre dos jugadores.
+    """
+
     def __init__(self, jugador1, jugador2):
         self.jugadores = [jugador1, jugador2]
         self.indice_actual = 0
@@ -35,7 +49,7 @@ class TurnManager:
         return self.jugadores[self.indice_actual]
 
     def siguiente_turno(self):
-        self.indice_actual = (self.indice_actual + 1) % 2
+        self.indice_actual = (self.indice_actual + 1) % len(self.jugadores)
 
     def mostrar_turno(self, verbose=True):
         if verbose:

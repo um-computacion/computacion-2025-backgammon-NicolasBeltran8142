@@ -18,8 +18,6 @@ class Dice:
         """
         Genera dos valores aleatorios entre 1 y 6 simulando el tiro de dados.
 
-        Si ambos valores son iguales, se considera un doble.
-
         Returns:
             tuple: Una tupla con los dos valores obtenidos.
         """
@@ -46,6 +44,16 @@ class Dice:
         """
         return self.__values__[0] == self.__values__[1]
 
+    def get_moves(self):
+        """
+        Calcula los movimientos disponibles según los valores de los dados.
+
+        Returns:
+            list: Lista de movimientos disponibles.
+        """
+        d1, d2 = self.__values__
+        return [d1] * 4 if self.is_double() else [d1, d2]
+
     def set_values_for_test(self, val1, val2):
         """
         Establece manualmente los valores de los dados (para pruebas).
@@ -54,17 +62,6 @@ class Dice:
             val1 (int): Valor del primer dado.
             val2 (int): Valor del segundo dado.
         """
+        if not (1 <= val1 <= 6 and 1 <= val2 <= 6):
+            raise ValueError("Los valores deben estar entre 1 y 6")
         self.__values__ = (val1, val2)
-
-    def get_moves(self):
-        """
-        Calcula los movimientos disponibles según los valores de los dados.
-
-        - Si es doble, devuelve cuatro movimientos iguales.
-        - Si no, devuelve dos movimientos distintos.
-
-        Returns:
-            list: Lista de movimientos disponibles.
-        """
-        d1, d2 = self.__values__
-        return [d1] * 4 if d1 == d2 else [d1, d2]
