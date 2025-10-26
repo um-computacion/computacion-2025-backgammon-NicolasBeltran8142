@@ -1,6 +1,8 @@
-from core.board import Board
-from core.dados import Dice
-from core.player import Jugador, TurnManager
+"""Módulo que contiene la clase Game, que coordina la lógica del juego."""
+from .board import Board
+from .dados import Dice
+from .player import Jugador, TurnManager
+
 
 class Game:
     """
@@ -39,8 +41,8 @@ class Game:
         Assigns initial positions to each player's checkers based on standard setup.
         """
         posiciones = {
-            "blanco": [0]*2 + [11]*5 + [16]*3 + [18]*5,
-            "negro": [23]*2 + [12]*5 + [7]*3 + [5]*5
+            "blanco": [0] * 2 + [11] * 5 + [16] * 3 + [18] * 5,
+            "negro": [23] * 2 + [12] * 5 + [7] * 3 + [5] * 5,
         }
         for color, puntos in posiciones.items():
             jugador = self.jugador1 if color == "blanco" else self.jugador2
@@ -147,7 +149,11 @@ class Game:
         if distancia not in self.available_moves:
             return False
         destino_fichas = self.board._puntos_[destino]
-        if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) > 1:
+        if (
+            destino_fichas
+            and destino_fichas[-1]._color_ != color
+            and len(destino_fichas) > 1
+        ):
             return False
         return True
 
@@ -171,7 +177,11 @@ class Game:
             return False
 
         destino_fichas = self.board._puntos_[destino]
-        if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) == 1:
+        if (
+            destino_fichas
+            and destino_fichas[-1]._color_ != color
+            and len(destino_fichas) == 1
+        ):
             rival_color = "negro" if color == "blanco" else "blanco"
             rival = self.fichas_en_punto(destino, rival_color)[0]
             rival._position_ = "bar"
@@ -184,12 +194,14 @@ class Game:
         if distancia in self.available_moves:
             self.available_moves.remove(distancia)
 
-        self.historial.append({
-            "jugador": color,
-            "origen": origen,
-            "destino": destino,
-            "dados": self.last_roll
-        })
+        self.historial.append(
+            {
+                "jugador": color,
+                "origen": origen,
+                "destino": destino,
+                "dados": self.last_roll,
+            }
+        )
 
         return True
 
@@ -247,7 +259,7 @@ class Game:
         """
         if self.jugador1.ha_ganado():
             return self.jugador1.nombre
-        elif self.jugador2.ha_ganado():
+        if self.jugador2.ha_ganado():
             return self.jugador2.nombre
         return None
 

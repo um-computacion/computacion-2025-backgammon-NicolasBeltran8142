@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 from core.player import Jugador, TurnManager
 
 class TestJugador(unittest.TestCase):
@@ -36,9 +37,20 @@ class TestJugador(unittest.TestCase):
         self.assertFalse(self.jugador.ha_ganado())
 
     def test_ha_ganado_devuelve_true_si_tiene_15_fichas_fuera(self):
-        for _ in range(15):
-            self.jugador.sacar_ficha()
+        for ficha in self.jugador.fichas:
+            ficha._position_ = "off"
         self.assertTrue(self.jugador.ha_ganado())
+
+    def test_str(self):
+        self.assertEqual(str(self.jugador), "Jugador 1 plays with blanco checkers")
+
+    def test_fichas_en_estado(self):
+        self.jugador.fichas[0]._position_ = "bar"
+        self.assertEqual(len(self.jugador.fichas_en_estado("bar")), 1)
+
+    def test_fichas_en_punto(self):
+        self.jugador.fichas[0]._position_ = 1
+        self.assertEqual(len(self.jugador.fichas_en_punto(1)), 1)
 
 
 class TestTurnManager(unittest.TestCase):
@@ -50,3 +62,9 @@ class TestTurnManager(unittest.TestCase):
         self.assertEqual(tm.jugador_actual().nombre, "B")
         tm.siguiente_turno()
         self.assertEqual(tm.jugador_actual().nombre, "A")
+
+    def test_mostrar_turno(self):
+        tm = TurnManager(Jugador("A", "white"), Jugador("B", "black"))
+        with unittest.mock.patch("builtins.print") as mock_print:
+            tm.mostrar_turno()
+            mock_print.assert_called_with("\nTurn: A (white)")
