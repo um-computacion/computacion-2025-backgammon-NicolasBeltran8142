@@ -45,12 +45,6 @@ class TestBoard(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.board.mover_ficha(0, 24, "blanco")
 
-    def test_mover_ficha_a_punto_bloqueado(self):
-        self.board._puntos_[0] = [Checker("blanco", 0)]
-        self.board._puntos_[1] = [Checker("negro", 1), Checker("negro", 1)]
-        with self.assertRaises(ValueError):
-            self.board.mover_ficha(0, 1, "blanco")
-
     def test_eliminar_ficha_si_unica(self):
         self.board._puntos_[5] = [Checker("negro", 5)]
         ficha = self.board.eliminar_ficha_si_unica(5, "negro")

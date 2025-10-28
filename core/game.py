@@ -31,7 +31,6 @@ class Game:
         self.available_moves = []
         self.historial = []
 
-        self.board.inicializar_fichas()
         self._asignar_fichas_a_jugadores()
 
     def _asignar_fichas_a_jugadores(self):
@@ -42,10 +41,18 @@ class Game:
             "blanco": [0]*2 + [11]*5 + [16]*3 + [18]*5,
             "negro": [23]*2 + [12]*5 + [7]*3 + [5]*5
         }
+        for point in self.board._puntos_:
+            point.clear()
+
         for color, puntos in posiciones.items():
             jugador = self.jugador1 if color == "blanco" else self.jugador2
+            for ficha in jugador.fichas:
+                ficha._position_ = None
+
             for i, punto in enumerate(puntos):
                 jugador.fichas[i]._position_ = punto
+                self.board._puntos_[punto].append(jugador.fichas[i])
+
 
     def tirar_dados(self):
         """
@@ -133,7 +140,7 @@ class Game:
 
         Args:
             origen (int or str): Origin point or "bar".
-            destino (int): Destination point.
+            destino (int or str): Destination point or "off".
             color (str): Player color.
 
         Returns:
@@ -141,14 +148,25 @@ class Game:
         """
         if self.fichas_en_barra(color) and origen != "bar":
             return False
-        if destino < 0 or destino > 23:
+
+        jugador = self._jugador_por_color(color)
+        if destino == "off":
+            if not jugador.puede_sacar_fichas(self.board):
+                return False
+            distancia = (24 - origen) if color == "blanco" else (origen + 1)
+            return distancia in self.available_moves
+
+        if not (0 <= destino <= 23):
             return False
+
         distancia = self._calcular_distancia(origen, destino, color)
         if distancia not in self.available_moves:
             return False
+            
         destino_fichas = self.board._puntos_[destino]
         if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) > 1:
             return False
+            
         return True
 
     def mover_ficha(self, origen, destino, color):
@@ -157,7 +175,7 @@ class Game:
 
         Args:
             origen (int or str): Origin point or "bar".
-            destino (int): Destination point.
+            destino (int or str): Destination point or "off".
             color (str): Player color.
 
         Returns:
@@ -170,17 +188,22 @@ class Game:
         if not ficha:
             return False
 
-        destino_fichas = self.board._puntos_[destino]
-        if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) == 1:
-            rival_color = "negro" if color == "blanco" else "blanco"
-            rival = self.fichas_en_punto(destino, rival_color)[0]
-            rival._position_ = "bar"
-            self.board._puntos_[destino].pop()
-
-        ficha._position_ = destino
-        self.board.mover_ficha(origen, destino, color)
-
         distancia = self._calcular_distancia(origen, destino, color)
+        if destino == "off":
+            ficha._position_ = "off"
+            self.board._puntos_[origen].pop()
+        else:
+            destino_fichas = self.board._puntos_[destino]
+            if destino_fichas and destino_fichas[-1]._color_ != color:
+                rival_color = "negro" if color == "blanco" else "blanco"
+                rival = self.fichas_en_punto(destino, rival_color)[0]
+                rival._position_ = "bar"
+                self.board._puntos_[destino].pop()
+
+            ficha._position_ = destino
+            self.board._puntos_[origen].pop()
+            self.board._puntos_[destino].append(ficha)
+        
         if distancia in self.available_moves:
             self.available_moves.remove(distancia)
 
@@ -204,50 +227,32 @@ class Game:
         Returns:
             Checker or None: The checker to move, if available.
         """
-        if origen == "bar":
-            fichas = self.fichas_en_barra(color)
-        else:
-            fichas = self.fichas_en_punto(origen, color)
+        fichas = self.fichas_en_barra(color) if origen == "bar" else self.fichas_en_punto(origen, color)
         return fichas[0] if fichas else None
 
     def _jugador_por_color(self, color):
         """
         Returns the player object based on color.
-
-        Args:
-            color (str): "blanco" or "negro".
-
-        Returns:
-            Jugador: The corresponding player.
         """
         return self.jugador1 if color == "blanco" else self.jugador2
 
     def _calcular_distancia(self, origen, destino, color):
         """
         Calculates the move distance based on origin and destination.
-
-        Args:
-            origen (int or str): Origin point or "bar".
-            destino (int): Destination point.
-            color (str): Player color.
-
-        Returns:
-            int: The distance used for move validation.
         """
         if origen == "bar":
-            return destino if color == "blanco" else 23 - destino
+            return (destino + 1) if color == "blanco" else (24 - destino)
+        if destino == "off":
+            return (24 - origen) if color == "blanco" else (origen + 1)
         return abs(destino - origen)
 
     def verificar_ganador(self):
         """
         Checks if any player has won the game.
-
-        Returns:
-            str or None: Winner's name or None if no winner yet.
         """
-        if self.jugador1.ha_ganado():
+        if len(self.fichas_borneadas("blanco")) == 15:
             return self.jugador1.nombre
-        elif self.jugador2.ha_ganado():
+        if len(self.fichas_borneadas("negro")) == 15:
             return self.jugador2.nombre
         return None
 

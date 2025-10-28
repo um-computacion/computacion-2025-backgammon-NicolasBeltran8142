@@ -1,5 +1,59 @@
 import unittest
-from core.checker import validar_movimiento, Punto
+from core.checker import Checker, Punto, validar_movimiento
+
+
+class TestChecker(unittest.TestCase):
+    def test_init(self):
+        checker = Checker("blanco", 1)
+        self.assertEqual(checker.color, "blanco")
+        self.assertEqual(checker.posicion, 1)
+
+    def test_init_invalid_position(self):
+        with self.assertRaises(ValueError):
+            Checker("blanco", 24)
+
+    def test_mover_a(self):
+        checker = Checker("blanco", 1)
+        checker.mover_a(2)
+        self.assertEqual(checker.posicion, 2)
+
+    def test_mover_a_invalid_position(self):
+        checker = Checker("blanco", 1)
+        with self.assertRaises(ValueError):
+            checker.mover_a(24)
+
+    def test_repr(self):
+        checker = Checker("blanco", 1)
+        self.assertEqual(repr(checker), "Checker(blanco, 1)")
+
+    def test_eq(self):
+        checker1 = Checker("blanco", 1)
+        checker2 = Checker("blanco", 1)
+        self.assertEqual(checker1, checker2)
+
+    def test_hash(self):
+        checker1 = Checker("blanco", 1)
+        checker2 = Checker("blanco", 1)
+        self.assertEqual(hash(checker1), hash(checker2))
+
+
+class TestPunto(unittest.TestCase):
+    def test_esta_vacio(self):
+        punto = Punto()
+        self.assertTrue(punto.esta_vacio())
+
+    def test_es_del_jugador(self):
+        punto = Punto("Jugador1", 1)
+        self.assertTrue(punto.es_del_jugador("Jugador1"))
+
+    def test_es_del_oponente(self):
+        punto = Punto("Jugador2", 1)
+        self.assertTrue(punto.es_del_oponente("Jugador1"))
+
+    def test_esta_bloqueado(self):
+        punto = Punto("Jugador2", 2)
+        self.assertTrue(punto.esta_bloqueado("Jugador1"))
+
 
 class TestValidacion(unittest.TestCase):
 

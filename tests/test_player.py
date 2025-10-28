@@ -36,8 +36,8 @@ class TestJugador(unittest.TestCase):
         self.assertFalse(self.jugador.ha_ganado())
 
     def test_ha_ganado_devuelve_true_si_tiene_15_fichas_fuera(self):
-        for _ in range(15):
-            self.jugador.sacar_ficha()
+        for ficha in self.jugador.fichas:
+            ficha._position_ = "off"
         self.assertTrue(self.jugador.ha_ganado())
 
 

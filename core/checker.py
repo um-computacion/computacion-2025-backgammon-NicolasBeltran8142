@@ -1,3 +1,6 @@
+"""Módulo que contiene las clases Checker y Punto, y la función validar_movimiento."""
+
+
 class Checker:
     """
     Represents a game piece (checker) with a color and current position.
@@ -44,9 +47,9 @@ class Checker:
 
     def __eq__(self, other):
         return (
-            isinstance(other, Checker) and
-            self._color_ == other._color_ and
-            self._position_ == other._position_
+            isinstance(other, Checker)
+            and self._color_ == other._color_
+            and self._position_ == other._position_
         )
 
     def __hash__(self):

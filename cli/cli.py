@@ -1,11 +1,20 @@
 from core.game import Game
 
+
 class TableroView:
+    """Una vista que muestra el estado del tablero de Backgammon."""
+
     def mostrar(self, juego):
+        """Muestra el tablero, incluyendo las fichas en cada punto y la barra.
+
+        Args:
+            juego (Game): El estado actual del juego.
+        """
         board = juego.board
         puntos = board._puntos_
 
         def get_checker_char(color):
+            """Devuelve el carácter que representa una ficha de un color."""
             return color[0].upper() if color else " "
 
         print("\nEstado del tablero:")
@@ -22,7 +31,11 @@ class TableroView:
                 stack = puntos[p]
                 char = " "
                 if len(stack) > i:
-                    char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+                    char = (
+                        str(len(stack))
+                        if len(stack) > 5 and i == 4
+                        else get_checker_char(stack[-1]._color_)
+                    )
                 fila_izq.append(f" {char} ")
 
             barra_char = " "
@@ -34,7 +47,11 @@ class TableroView:
                 stack = puntos[p]
                 char = " "
                 if len(stack) > i:
-                    char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+                    char = (
+                        str(len(stack))
+                        if len(stack) > 5 and i == 4
+                        else get_checker_char(stack[-1]._color_)
+                    )
                 fila_der.append(f" {char} ")
 
             print(f"|{'|'.join(fila_izq)}|  {barra_char}  |{'|'.join(fila_der)}|")
@@ -48,7 +65,11 @@ class TableroView:
                 stack = puntos[p]
                 char = " "
                 if len(stack) > i:
-                    char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+                    char = (
+                        str(len(stack))
+                        if len(stack) > 5 and i == 4
+                        else get_checker_char(stack[-1]._color_)
+                    )
                 fila_izq.append(f" {char} ")
 
             barra_char = " "
@@ -60,7 +81,11 @@ class TableroView:
                 stack = puntos[p]
                 char = " "
                 if len(stack) > i:
-                    char = str(len(stack)) if len(stack) > 5 and i == 4 else get_checker_char(stack[-1]._color_)
+                    char = (
+                        str(len(stack))
+                        if len(stack) > 5 and i == 4
+                        else get_checker_char(stack[-1]._color_)
+                    )
                 fila_der.append(f" {char} ")
 
             print(f"|{'|'.join(fila_izq)}|  {barra_char}  |{'|'.join(fila_der)}|")
@@ -68,10 +93,20 @@ class TableroView:
         print("+---+---+---+---+---+---+------+---+---+---+---+---+---+")
         home_blanco = len(juego.fichas_borneadas("blanco"))
         home_negro = len(juego.fichas_borneadas("negro"))
-        print(f"\nFichas borneadas: Blanco={home_blanco} {'W'*home_blanco} | Negro={home_negro} {'B'*home_negro}")
+        print(
+            f"\nFichas borneadas: Blanco={home_blanco} {'W'*home_blanco} | Negro={home_negro} {'B'*home_negro}"
+        )
+
 
 class EstadoView:
+    """Muestra el estado actual del juego, incluyendo el turno y los dados."""
+
     def mostrar(self, juego):
+        """Muestra el jugador actual, las fichas en la barra, los dados y los movimientos.
+
+        Args:
+            juego (Game): El estado actual del juego.
+        """
         jugador = juego.jugador_actual()
         print(f"\nTurno de: {jugador.nombre} ({jugador.color})")
         print(f"Fichas en barra: {len(juego.fichas_en_barra(jugador.color))}")
@@ -79,7 +114,18 @@ class EstadoView:
         print(f"Último tiro: {juego.last_roll}")
         print(f"Movimientos disponibles: {juego.available_moves}")
 
+
 def fichas_movibles(juego, color):
+    """Obtiene una lista de fichas que el jugador puede mover.
+
+    Args:
+        juego (Game): El estado actual del juego.
+        color (str): El color del jugador ('blanco' o 'negro').
+
+    Returns:
+        list: Una lista de tuplas, donde cada tupla contiene una ficha y una lista de
+              posibles destinos.
+    """
     fichas = []
     for punto in juego.puntos_validos_de_origen(color):
         stack = juego.board._puntos_[punto]
@@ -94,7 +140,9 @@ def fichas_movibles(juego, color):
                 fichas.append((ficha, posibles))
     return fichas
 
+
 def ejecutar_cli():
+    """Ejecuta el juego de Backgammon en la interfaz de línea de comandos."""
     juego = Game()
     tablero = TableroView()
     estado = EstadoView()
@@ -121,12 +169,18 @@ def ejecutar_cli():
                 print("No hay movimientos posibles con los dados restantes.")
                 break
 
-            print("\nFichas disponibles para mover (solo la ficha superior de cada punto):")
+            print(
+                "\nFichas disponibles para mover (solo la ficha superior de cada punto):"
+            )
             for i, (ficha, destinos) in enumerate(fichas_disponibles):
-                print(f"{i}: Ficha en punto {ficha._position_} → posibles destinos: {sorted(set(destinos))}")
+                print(
+                    f"{i}: Ficha en punto {ficha._position_} → posibles destinos: {sorted(set(destinos))}"
+                )
 
             try:
-                eleccion = int(input("Seleccioná el número de ficha que querés mover: "))
+                eleccion = int(
+                    input("Seleccioná el número de ficha que querés mover: ")
+                )
                 ficha, destinos = fichas_disponibles[eleccion]
                 print(f"\nPosibles destinos para la ficha en {ficha._position_}:")
                 for d in sorted(set(destinos)):
@@ -149,9 +203,9 @@ def ejecutar_cli():
             print(f"\n{ganador} ha ganado el juego!")
             break
 
-        continuar = input("\n¿Pasar al siguiente turno? (¡¡Darle a no cerrará el juego!!) (s/n): ")
+        continuar = input(
+            "\n¿Pasar al siguiente turno? (¡¡Darle a no cerrará el juego!!) (s/n): "
+        )
         if continuar.lower() != "s":
             print("Fin del juego. Gracias por jugar.")
             break
-
-        

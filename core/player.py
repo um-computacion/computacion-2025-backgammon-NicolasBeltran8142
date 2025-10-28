@@ -1,10 +1,12 @@
-from core.checker import Checker
+"""Módulo que contiene las clases Jugador y TurnManager."""
+from .checker import Checker
+
 
 class Jugador:
     """
     Represents a Backgammon player.
     Manages name, color, checkers, score, and win condition.
-    
+
     Attributes:
         nombre (str): Player's name.
         color (str): Player's checker color ("blanco" or "negro").
@@ -51,7 +53,9 @@ class Jugador:
         """
         self.fichas_fuera += 1
         if verbose:
-            print(f"{self.nombre} has borne off a checker. Total off: {self.fichas_fuera}")
+            print(
+                f"{self.nombre} has borne off a checker. Total off: {self.fichas_fuera}"
+            )
 
     def ha_ganado(self):
         """

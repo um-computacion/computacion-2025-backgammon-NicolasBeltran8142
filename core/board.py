@@ -8,6 +8,7 @@ class Board:
     Attributes:
         _puntos_ (list): A list of 24 slots, each containing a stack of checkers.
         historial_de_jugadas (list): A record of all moves made during the game.
+        fichas (list): A list of all 30 checkers.
     """
 
     def __init__(self):
@@ -16,19 +17,23 @@ class Board:
         """
         self._puntos_ = [[] for _ in range(24)]
         self.historial_de_jugadas = []
+        self.fichas = []
 
     def inicializar_fichas(self):
         """
         Places the initial checkers on the board according to standard setup.
         """
+        self.fichas = []
         posiciones = {
-            "blanco": {0: 2, 11: 5, 16: 3, 18: 5},
-            "negro": {23: 2, 12: 5, 7: 3, 5: 5}
+            "negro": {23: 2, 12: 5, 7: 3, 5: 5},
+            "blanco": {0: 2, 11: 5, 16: 3, 18: 5}
         }
         for color, puntos in posiciones.items():
             for punto, cantidad in puntos.items():
                 for _ in range(cantidad):
-                    self._puntos_[punto].append(Checker(color, punto))
+                    checker = Checker(color, punto)
+                    self._puntos_[punto].append(checker)
+                    self.fichas.append(checker)
 
     def mover_ficha(self, origen, destino, color):
         """
