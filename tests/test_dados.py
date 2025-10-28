@@ -1,6 +1,7 @@
 import unittest
 from core.dados import Dice
 
+
 class TestDice(unittest.TestCase):
 
     def test_roll_dice_returns_valid_values(self):

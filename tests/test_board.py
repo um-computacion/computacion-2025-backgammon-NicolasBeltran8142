@@ -2,6 +2,7 @@ import unittest
 from core.board import Board
 from core.checker import Checker
 
+
 class TestBoard(unittest.TestCase):
 
     def setUp(self):
@@ -78,7 +79,9 @@ class TestBoard(unittest.TestCase):
     def test_reingreso_exitoso(self):
         entrada = self.board.intentar_reingreso("blanco")
         self.assertIn(entrada, range(0, 6))
-        self.assertTrue(any(f._color_ == "blanco" for f in self.board._puntos_[entrada]))
+        self.assertTrue(
+            any(f._color_ == "blanco" for f in self.board._puntos_[entrada])
+        )
 
     def test_reingreso_fallido(self):
         b = Board()

@@ -2,6 +2,7 @@ from core.board import Board
 from core.dados import Dice
 from core.player import Jugador, TurnManager
 
+
 class Game:
     """
     Coordinates the overall Backgammon game logic, including board state,
@@ -38,8 +39,8 @@ class Game:
         Assigns initial positions to each player's checkers based on standard setup.
         """
         posiciones = {
-            "blanco": [0]*2 + [11]*5 + [16]*3 + [18]*5,
-            "negro": [23]*2 + [12]*5 + [7]*3 + [5]*5
+            "blanco": [23] * 2 + [12] * 5 + [7] * 3 + [5] * 5,
+            "negro": [0] * 2 + [11] * 5 + [16] * 3 + [18] * 5,
         }
         for point in self.board._puntos_:
             point.clear()
@@ -52,7 +53,6 @@ class Game:
             for i, punto in enumerate(puntos):
                 jugador.fichas[i]._position_ = punto
                 self.board._puntos_[punto].append(jugador.fichas[i])
-
 
     def tirar_dados(self):
         """
@@ -162,11 +162,15 @@ class Game:
         distancia = self._calcular_distancia(origen, destino, color)
         if distancia not in self.available_moves:
             return False
-            
+
         destino_fichas = self.board._puntos_[destino]
-        if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) > 1:
+        if (
+            destino_fichas
+            and destino_fichas[-1]._color_ != color
+            and len(destino_fichas) > 1
+        ):
             return False
-            
+
         return True
 
     def mover_ficha(self, origen, destino, color):
@@ -203,16 +207,18 @@ class Game:
             ficha._position_ = destino
             self.board._puntos_[origen].pop()
             self.board._puntos_[destino].append(ficha)
-        
+
         if distancia in self.available_moves:
             self.available_moves.remove(distancia)
 
-        self.historial.append({
-            "jugador": color,
-            "origen": origen,
-            "destino": destino,
-            "dados": self.last_roll
-        })
+        self.historial.append(
+            {
+                "jugador": color,
+                "origen": origen,
+                "destino": destino,
+                "dados": self.last_roll,
+            }
+        )
 
         return True
 
@@ -227,7 +233,11 @@ class Game:
         Returns:
             Checker or None: The checker to move, if available.
         """
-        fichas = self.fichas_en_barra(color) if origen == "bar" else self.fichas_en_punto(origen, color)
+        fichas = (
+            self.fichas_en_barra(color)
+            if origen == "bar"
+            else self.fichas_en_punto(origen, color)
+        )
         return fichas[0] if fichas else None
 
     def _jugador_por_color(self, color):
