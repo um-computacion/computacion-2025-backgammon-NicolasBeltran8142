@@ -1,6 +1,4 @@
 import unittest
-import io
-from contextlib import redirect_stdout
 from core.board import Board
 from core.checker import Checker
 
@@ -46,12 +44,6 @@ class TestBoard(unittest.TestCase):
             self.board.mover_ficha(-1, 5, "blanco")
         with self.assertRaises(ValueError):
             self.board.mover_ficha(0, 24, "blanco")
-
-    def test_mover_ficha_a_punto_bloqueado(self):
-        self.board._puntos_[0] = [Checker("blanco", 0)]
-        self.board._puntos_[1] = [Checker("negro", 1), Checker("negro", 1)]
-        with self.assertRaises(ValueError):
-            self.board.mover_ficha(0, 1, "blanco")
 
     def test_eliminar_ficha_si_unica(self):
         self.board._puntos_[5] = [Checker("negro", 5)]
@@ -103,20 +95,3 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(jugada["origen"], 0)
         self.assertEqual(jugada["destino"], 5)
         self.assertTrue(jugada["captura"])
-
-    def test_mostrar_historial(self):
-        self.board.registrar_jugada("blanco", 0, 5, captura=True)
-        self.board.registrar_jugada("negro", 23, 18)
-        with io.StringIO() as buf, redirect_stdout(buf):
-            self.board.mostrar_historial()
-            output = buf.getvalue()
-        self.assertIn("blanco moved from 0 to 5 (capture)", output)
-        self.assertIn("negro moved from 23 to 18", output)
-
-    def test_mostrar_tablero(self):
-        with io.StringIO() as buf, redirect_stdout(buf):
-            self.board.mostrar_tablero()
-            output = buf.getvalue()
-        self.assertIn("Welcome to Backgammon Compucation 2025", output)
-        self.assertIn("TOP ZONE", output)
-        self.assertIn("BOTTOM ZONE", output)

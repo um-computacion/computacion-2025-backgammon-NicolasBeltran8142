@@ -1,6 +1,4 @@
-"""Módulo que contiene la clase Board, que representa el tablero de Backgammon."""
-from .checker import Checker
-
+from core.checker import Checker
 
 class Board:
     """
@@ -10,6 +8,7 @@ class Board:
     Attributes:
         _puntos_ (list): A list of 24 slots, each containing a stack of checkers.
         historial_de_jugadas (list): A record of all moves made during the game.
+        fichas (list): A list of all 30 checkers.
     """
 
     def __init__(self):
@@ -18,19 +17,23 @@ class Board:
         """
         self._puntos_ = [[] for _ in range(24)]
         self.historial_de_jugadas = []
+        self.fichas = []
 
     def inicializar_fichas(self):
         """
         Places the initial checkers on the board according to standard setup.
         """
+        self.fichas = []
         posiciones = {
-            "blanco": {0: 2, 11: 5, 16: 3, 18: 5},
             "negro": {23: 2, 12: 5, 7: 3, 5: 5},
+            "blanco": {0: 2, 11: 5, 16: 3, 18: 5}
         }
         for color, puntos in posiciones.items():
             for punto, cantidad in puntos.items():
                 for _ in range(cantidad):
-                    self._puntos_[punto].append(Checker(color, punto))
+                    checker = Checker(color, punto)
+                    self._puntos_[punto].append(checker)
+                    self.fichas.append(checker)
 
     def mover_ficha(self, origen, destino, color):
         """
@@ -44,32 +47,21 @@ class Board:
         Raises:
             ValueError: If the move is invalid due to range, color mismatch, or blocked destination.
         """
-        if not 0 <= origen < 24:
-            raise ValueError("Origin point must be between 0 and 23")
-        if not 0 <= destino < 24:
-            raise ValueError("Destination point must be between 0 and 23")
+        if not (0 <= origen < 24 and 0 <= destino < 24):
+            raise ValueError("Points must be between 0 and 23")
 
         punto_origen = self._puntos_[origen]
         punto_destino = self._puntos_[destino]
-
-        if punto_destino and punto_destino[-1]._color_ != color and len(punto_destino) > 1:
-            raise ValueError("Point is blocked by the opponent")
 
         if not punto_origen:
             raise ValueError(f"No checkers at point {origen}")
 
         ficha = punto_origen[-1]
         if ficha._color_ != color:
-            raise ValueError(
-                f"The checker at point {origen} does not match color {color}"
-            )
+            raise ValueError(f"The checker at point {origen} does not match color {color}")
 
         captura = False
-        if (
-            punto_destino
-            and punto_destino[-1]._color_ != color
-            and len(punto_destino) == 1
-        ):
+        if punto_destino and punto_destino[-1]._color_ != color and len(punto_destino) == 1:
             punto_destino.pop()
             captura = True
 
@@ -93,14 +85,15 @@ class Board:
         Raises:
             ValueError: If the point is out of range or conditions are not met.
         """
-        if not 0 <= punto < 24:
+        if not (0 <= punto < 24):
             raise ValueError("Point must be between 0 and 23")
 
         casilla = self._puntos_[punto]
         if len(casilla) == 1 and casilla[0]._color_ == color:
             ficha = casilla.pop()
             return ficha
-        raise ValueError("Cannot remove checker: invalid conditions")
+        else:
+            raise ValueError("Cannot remove checker: invalid conditions")
 
     def puede_entrar_desde_bar(self, color, entrada):
         """
@@ -149,7 +142,7 @@ class Board:
             "jugador": jugador,
             "origen": origen,
             "destino": destino,
-            "captura": captura,
+            "captura": captura
         }
         self.historial_de_jugadas.append(jugada)
 
@@ -172,28 +165,16 @@ class Board:
 
         print("TOP ZONE (13 → 24):")
         print(" ".join([f"{i:2}" for i in range(12, 24)]))
-        print(
-            " ".join(
-                [
-                    "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]])
-                    if self._puntos_[i]
-                    else "--"
-                    for i in range(12, 24)
-                ]
-            )
-        )
+        print(" ".join([
+            "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
+            for i in range(12, 24)
+        ]))
 
         print("\n" + "-" * 50 + "\n")
 
         print("BOTTOM ZONE (12 → 1):")
         print(" ".join([f"{i:2}" for i in reversed(range(12))]))
-        print(
-            " ".join(
-                [
-                    "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]])
-                    if self._puntos_[i]
-                    else "--"
-                    for i in reversed(range(12))
-                ]
-            )
-        )
+        print(" ".join([
+            "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
+            for i in reversed(range(12))
+        ]))

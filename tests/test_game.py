@@ -36,14 +36,13 @@ class TestGame(unittest.TestCase):
 
     # Movimiento válido
     def test_mover_ficha_valido_actualiza_posicion_y_tablero(self):
-        ficha = self.game.fichas_en_punto(0, "blanco")[0]
-        origen = ficha._position_
-        destino = origen + 1
+        origen = 18
+        destino = 17
         self.game.available_moves = [1]
         resultado = self.game.mover_ficha(origen, destino, "blanco")
         self.assertTrue(resultado)
-        self.assertEqual(ficha._position_, destino)
-        self.assertIn(ficha, self.game.board._puntos_[destino])
+        self.assertEqual(len(self.game.fichas_en_punto(origen, "blanco")), 4)
+        self.assertEqual(len(self.game.fichas_en_punto(destino, "blanco")), 1)
 
     # Movimiento inválido
     def test_mover_ficha_invalido_sin_ficha_en_origen(self):
@@ -59,11 +58,11 @@ class TestGame(unittest.TestCase):
     # Validación de movimiento
     def test_puede_mover_valido(self):
         self.game.available_moves = [1]
-        self.assertTrue(self.game.puede_mover(0, 1, "blanco"))
+        self.assertTrue(self.game.puede_mover(18, 17, "blanco"))
 
     def test_puede_mover_invalido_fuera_de_rango(self):
         self.game.available_moves = [1]
-        self.assertFalse(self.game.puede_mover(0, 24, "blanco"))
+        self.assertFalse(self.game.puede_mover(0, -1, "blanco"))
 
     def test_puede_mover_falla_si_hay_fichas_en_barra_y_origen_distinto(self):
         self.game.jugador1.fichas[0]._position_ = "bar"
@@ -72,7 +71,7 @@ class TestGame(unittest.TestCase):
     def test_puede_mover_falla_si_destino_ocupado_por_2_o_mas_rivales(self):
         self.game.available_moves = [1]
         destino = 1
-        negras = self.game.fichas_en_punto(5, "negro")[:2]
+        negras = self.game.fichas_en_punto(23, "negro")[:2]
         for f in negras:
             f._position_ = destino
         self.game.board._puntos_[destino] = negras
@@ -80,22 +79,22 @@ class TestGame(unittest.TestCase):
 
     # Captura
     def test_mover_ficha_con_captura_envia_rival_a_barra(self):
-        ficha_blanca = self.game.fichas_en_punto(0, "blanco")[0]
-        ficha_negra = self.game.fichas_en_punto(5, "negro")[0]
-        ficha_negra._position_ = 1
-        self.game.board._puntos_[1] = [ficha_negra]
+        origen = 18
+        destino = 17
+        ficha_negra = self.game.fichas_en_punto(23, "negro")[0]
+        ficha_negra._position_ = destino
+        self.game.board._puntos_[destino] = [ficha_negra]
         self.game.available_moves = [1]
         self.game.last_roll = (1, 2)
-        resultado = self.game.mover_ficha(0, 1, "blanco")
+        resultado = self.game.mover_ficha(origen, destino, "blanco")
         self.assertTrue(resultado)
         self.assertEqual(ficha_negra._position_, "bar")
-        self.assertIn(ficha_blanca, self.game.board._puntos_[1])
+        self.assertEqual(len(self.game.fichas_en_punto(destino, "blanco")), 1)
 
     # Historial
     def test_historial_se_actualiza_correctamente(self):
-        ficha = self.game.fichas_en_punto(0, "blanco")[0]
-        origen = ficha._position_
-        destino = origen + 1
+        origen = 18
+        destino = 17
         self.game.available_moves = [1]
         self.game.last_roll = (1, 2)
         self.game.mover_ficha(origen, destino, "blanco")
