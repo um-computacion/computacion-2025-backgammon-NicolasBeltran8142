@@ -1,5 +1,6 @@
 from core.checker import Checker
 
+
 class Board:
     """
     Represents the Backgammon board, composed of 24 numbered points (0 to 23).
@@ -26,7 +27,7 @@ class Board:
         self.fichas = []
         posiciones = {
             "negro": {23: 2, 12: 5, 7: 3, 5: 5},
-            "blanco": {0: 2, 11: 5, 16: 3, 18: 5}
+            "blanco": {0: 2, 11: 5, 16: 3, 18: 5},
         }
         for color, puntos in posiciones.items():
             for punto, cantidad in puntos.items():
@@ -58,10 +59,16 @@ class Board:
 
         ficha = punto_origen[-1]
         if ficha._color_ != color:
-            raise ValueError(f"The checker at point {origen} does not match color {color}")
+            raise ValueError(
+                f"The checker at point {origen} does not match color {color}"
+            )
 
         captura = False
-        if punto_destino and punto_destino[-1]._color_ != color and len(punto_destino) == 1:
+        if (
+            punto_destino
+            and punto_destino[-1]._color_ != color
+            and len(punto_destino) == 1
+        ):
             punto_destino.pop()
             captura = True
 
@@ -142,7 +149,7 @@ class Board:
             "jugador": jugador,
             "origen": origen,
             "destino": destino,
-            "captura": captura
+            "captura": captura,
         }
         self.historial_de_jugadas.append(jugada)
 
@@ -165,16 +172,42 @@ class Board:
 
         print("TOP ZONE (13 → 24):")
         print(" ".join([f"{i:2}" for i in range(12, 24)]))
-        print(" ".join([
-            "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
-            for i in range(12, 24)
-        ]))
+        print(
+            " ".join(
+                [
+                    (
+                        "".join(
+                            [
+                                "B" if f._color_ == "blanco" else "N"
+                                for f in self._puntos_[i]
+                            ]
+                        )
+                        if self._puntos_[i]
+                        else "--"
+                    )
+                    for i in range(12, 24)
+                ]
+            )
+        )
 
         print("\n" + "-" * 50 + "\n")
 
         print("BOTTOM ZONE (12 → 1):")
         print(" ".join([f"{i:2}" for i in reversed(range(12))]))
-        print(" ".join([
-            "".join(["B" if f._color_ == "blanco" else "N" for f in self._puntos_[i]]) if self._puntos_[i] else "--"
-            for i in reversed(range(12))
-        ]))
+        print(
+            " ".join(
+                [
+                    (
+                        "".join(
+                            [
+                                "B" if f._color_ == "blanco" else "N"
+                                for f in self._puntos_[i]
+                            ]
+                        )
+                        if self._puntos_[i]
+                        else "--"
+                    )
+                    for i in reversed(range(12))
+                ]
+            )
+        )

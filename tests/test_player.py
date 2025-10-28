@@ -1,6 +1,7 @@
 import unittest
 from core.player import Jugador, TurnManager
 
+
 class TestJugador(unittest.TestCase):
 
     def setUp(self):

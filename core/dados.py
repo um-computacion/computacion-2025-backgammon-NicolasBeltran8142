@@ -1,4 +1,5 @@
 """Módulo que contiene la clase Dice, que representa los dados del juego."""
+
 import random
 
 

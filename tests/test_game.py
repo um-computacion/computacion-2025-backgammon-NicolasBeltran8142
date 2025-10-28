@@ -1,6 +1,7 @@
 import unittest
 from core.game import Game
 
+
 class TestGame(unittest.TestCase):
 
     def setUp(self):
@@ -36,8 +37,8 @@ class TestGame(unittest.TestCase):
 
     # Movimiento válido
     def test_mover_ficha_valido_actualiza_posicion_y_tablero(self):
-        origen = 18
-        destino = 17
+        origen = 5
+        destino = 4
         self.game.available_moves = [1]
         resultado = self.game.mover_ficha(origen, destino, "blanco")
         self.assertTrue(resultado)
@@ -52,36 +53,36 @@ class TestGame(unittest.TestCase):
 
     def test_mover_ficha_invalida_por_puede_mover_false(self):
         self.game.available_moves = [3]
-        resultado = self.game.mover_ficha(0, 10, "blanco")
+        resultado = self.game.mover_ficha(5, 1, "blanco")
         self.assertFalse(resultado)
 
     # Validación de movimiento
     def test_puede_mover_valido(self):
         self.game.available_moves = [1]
-        self.assertTrue(self.game.puede_mover(18, 17, "blanco"))
+        self.assertTrue(self.game.puede_mover(5, 4, "blanco"))
 
     def test_puede_mover_invalido_fuera_de_rango(self):
         self.game.available_moves = [1]
-        self.assertFalse(self.game.puede_mover(0, -1, "blanco"))
+        self.assertFalse(self.game.puede_mover(5, -1, "blanco"))
 
     def test_puede_mover_falla_si_hay_fichas_en_barra_y_origen_distinto(self):
         self.game.jugador1.fichas[0]._position_ = "bar"
-        self.assertFalse(self.game.puede_mover(0, 5, "blanco"))
+        self.assertFalse(self.game.puede_mover(5, 4, "blanco"))
 
     def test_puede_mover_falla_si_destino_ocupado_por_2_o_mas_rivales(self):
         self.game.available_moves = [1]
-        destino = 1
-        negras = self.game.fichas_en_punto(23, "negro")[:2]
+        destino = 4
+        negras = self.game.fichas_en_punto(0, "negro")[:2]
         for f in negras:
             f._position_ = destino
         self.game.board._puntos_[destino] = negras
-        self.assertFalse(self.game.puede_mover(0, destino, "blanco"))
+        self.assertFalse(self.game.puede_mover(5, destino, "blanco"))
 
     # Captura
     def test_mover_ficha_con_captura_envia_rival_a_barra(self):
-        origen = 18
-        destino = 17
-        ficha_negra = self.game.fichas_en_punto(23, "negro")[0]
+        origen = 5
+        destino = 4
+        ficha_negra = self.game.fichas_en_punto(0, "negro")[0]
         ficha_negra._position_ = destino
         self.game.board._puntos_[destino] = [ficha_negra]
         self.game.available_moves = [1]
@@ -93,8 +94,8 @@ class TestGame(unittest.TestCase):
 
     # Historial
     def test_historial_se_actualiza_correctamente(self):
-        origen = 18
-        destino = 17
+        origen = 5
+        destino = 4
         self.game.available_moves = [1]
         self.game.last_roll = (1, 2)
         self.game.mover_ficha(origen, destino, "blanco")
@@ -111,7 +112,7 @@ class TestGame(unittest.TestCase):
         origenes = self.game.puntos_validos_de_origen(jugador.color)
         for move in self.game.available_moves:
             for origen in origenes:
-                destino = origen + move
+                destino = origen - move if jugador.color == "blanco" else origen + move
                 if self.game.puede_mover(origen, destino, jugador.color):
                     resultado = self.game.mover_ficha(origen, destino, jugador.color)
                     self.assertTrue(resultado)

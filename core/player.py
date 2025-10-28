@@ -1,4 +1,5 @@
 """Módulo que contiene las clases Jugador y TurnManager."""
+
 from .checker import Checker
 
 
