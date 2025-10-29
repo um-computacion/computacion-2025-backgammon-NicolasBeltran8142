@@ -1,5 +1,4 @@
 """Módulo que contiene las clases Jugador y TurnManager."""
-
 from .checker import Checker
 
 
@@ -90,6 +89,26 @@ class Jugador:
             list: Checkers located at that point.
         """
         return [f for f in self.fichas if f._position_ == punto]
+
+    def puede_sacar_fichas(self, board):
+        """
+        Checks if the player can start bearing off checkers.
+
+        Args:
+            board (Board): The game board.
+
+        Returns:
+            bool: True if all active checkers are in the home board.
+        """
+        if self.color == "blanco":
+            # White's home board is points 18-23
+            rango_casa = range(18, 24)
+        else:
+            # Black's home board is points 0-5
+            rango_casa = range(6)
+        
+        # Check if all checkers not yet borne off are in the home board
+        return all(f._position_ in rango_casa or f._position_ == "off" for f in self.fichas if f._position_ != 'bar')
 
 
 class TurnManager:
