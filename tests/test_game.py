@@ -1,7 +1,6 @@
 import unittest
 from core.game import Game
 
-
 class TestGame(unittest.TestCase):
 
     def setUp(self):
