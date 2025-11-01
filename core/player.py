@@ -1,4 +1,5 @@
 """Modulo que contiene las clases Jugador y TurnManager."""
+
 from .checker import Checker
 
 
@@ -59,7 +60,9 @@ class Jugador:
         """
         self.fichas_fuera += 1
         if verbose:
-            print(f"{self.nombre} ha retirado una ficha. Total fuera: {self.fichas_fuera}")
+            print(
+                f"{self.nombre} ha retirado una ficha. Total fuera: {self.fichas_fuera}"
+            )
 
     def ha_ganado(self):
         """

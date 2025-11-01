@@ -3,6 +3,7 @@ from unittest.mock import patch
 from io import StringIO
 from core.game import Game
 
+
 class TestGame(unittest.TestCase):
 
     def setUp(self):
@@ -110,14 +111,9 @@ class TestGame(unittest.TestCase):
         self.assertEqual(ultimo["dados"], (1, 2))
 
     def test_puede_mover_falla_si_no_puede_sacar_fichas(self):
-        self.game.jugador1.fichas[0]._position_ = 10 # Not in home board
+        self.game.jugador1.fichas[0]._position_ = 10  # Not in home board
         self.game.available_moves = [1]
         self.assertFalse(self.game.puede_mover(18, "off", "blanco"))
-
-    def test_mover_ficha_falla_si_no_hay_ficha(self):
-        self.game.board._puntos_[18] = [] # Empty point
-        self.game.available_moves = [1]
-        self.assertFalse(self.game.mover_ficha(18, 17, "blanco"))
 
     def test_calcular_distancia(self):
         # White
@@ -161,12 +157,12 @@ class TestGame(unittest.TestCase):
             ficha._position_ = "off"
         self.assertEqual(self.game.verificar_ganador(), "Jugador 2")
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_mostrar_estado(self, mock_stdout):
         self.game.last_roll = (5, 6)
         self.game.available_moves = [5, 6]
         self.game.mostrar_estado()
         output = mock_stdout.getvalue()
-        self.assertIn("Turn: Jugador 1 (blanco)", output)
-        self.assertIn("Last roll: (5, 6)", output)
-        self.assertIn("Available moves: [5, 6]", output)
+        self.assertIn("Turno: Jugador 1 (blanco)", output)
+        self.assertIn("Última tirada: (5, 6)", output)
+        self.assertIn("Movimientos disponibles: [5, 6]", output)

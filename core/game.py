@@ -2,6 +2,7 @@ from core.board import Board
 from core.dados import Dice
 from core.player import Jugador, TurnManager
 
+
 class Game:
     """
     Coordina la lógica general del juego de Backgammon, incluyendo el estado del tablero,
@@ -38,8 +39,8 @@ class Game:
         Asigna las posiciones iniciales de las fichas según la configuración estándar.
         """
         posiciones = {
-            "blanco": [0]*2 + [11]*5 + [16]*3 + [18]*5,
-            "negro": [23]*2 + [12]*5 + [7]*3 + [5]*5
+            "blanco": [0] * 2 + [11] * 5 + [16] * 3 + [18] * 5,
+            "negro": [23] * 2 + [12] * 5 + [7] * 3 + [5] * 5,
         }
         for point in self.board._puntos_:
             point.clear()
@@ -163,7 +164,11 @@ class Game:
             return False
 
         destino_fichas = self.board._puntos_[destino]
-        if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) > 1:
+        if (
+            destino_fichas
+            and destino_fichas[-1]._color_ != color
+            and len(destino_fichas) > 1
+        ):
             return False
 
         return True
@@ -188,32 +193,44 @@ class Game:
             return False
 
         distancia = self._calcular_distancia(origen, destino, color)
+
+        # Movimiento hacia fuera del tablero
         if destino == "off":
             ficha._position_ = "off"
-            if origen != "bar":
+            if origen != "bar" and self.board._puntos_[origen]:
                 self.board._puntos_[origen].pop()
+
         else:
             destino_fichas = self.board._puntos_[destino]
-            if destino_fichas and destino_fichas[-1]._color_ != color:
-                rival_color = "negro" if color == "blanco" else "blanco"
-                rival = self.fichas_en_punto(destino, rival_color)[0]
+
+            # Captura si hay una sola ficha rival
+            if (
+                destino_fichas
+                and destino_fichas[-1]._color_ != color
+                and len(destino_fichas) == 1
+            ):
+                rival = destino_fichas[-1]
                 rival._position_ = "bar"
                 self.board._puntos_[destino].pop()
 
             ficha._position_ = destino
-            if origen != "bar":
+
+            if origen != "bar" and self.board._puntos_[origen]:
                 self.board._puntos_[origen].pop()
+
             self.board._puntos_[destino].append(ficha)
 
         if distancia in self.available_moves:
             self.available_moves.remove(distancia)
 
-        self.historial.append({
-            "jugador": color,
-            "origen": origen,
-            "destino": destino,
-            "dados": self.last_roll
-        })
+        self.historial.append(
+            {
+                "jugador": color,
+                "origen": origen,
+                "destino": destino,
+                "dados": self.last_roll,
+            }
+        )
 
         return True
 
@@ -228,7 +245,11 @@ class Game:
         Retorna:
             Ficha o None: La ficha a mover, si existe.
         """
-        fichas = self.fichas_en_barra(color) if origen == "bar" else self.fichas_en_punto(origen, color)
+        fichas = (
+            self.fichas_en_barra(color)
+            if origen == "bar"
+            else self.fichas_en_punto(origen, color)
+        )
         return fichas[0] if fichas else None
 
     def _jugador_por_color(self, color):
