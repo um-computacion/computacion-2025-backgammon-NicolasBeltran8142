@@ -1,27 +1,27 @@
-"""Módulo que contiene las clases Jugador y TurnManager."""
+"""Modulo que contiene las clases Jugador y TurnManager."""
 from .checker import Checker
 
 
 class Jugador:
     """
-    Represents a Backgammon player.
-    Manages name, color, checkers, score, and win condition.
+    Representa a un jugador de Backgammon.
+    Administra nombre, color, fichas, puntaje y condicion de victoria.
 
-    Attributes:
-        nombre (str): Player's name.
-        color (str): Player's checker color ("blanco" or "negro").
-        puntos (int): Accumulated score.
-        fichas_fuera (int): Number of checkers borne off.
-        fichas (list): List of 15 Checker objects belonging to the player.
+    Atributos:
+        nombre (str): Nombre del jugador.
+        color (str): Color de sus fichas ("blanco" o "negro").
+        puntos (int): Puntaje acumulado.
+        fichas_fuera (int): Cantidad de fichas retiradas del tablero.
+        fichas (list): Lista de 15 objetos Checker que pertenecen al jugador.
     """
 
     def __init__(self, nombre, color):
         """
-        Initializes a player with a name, color, and 15 checkers.
+        Inicializa un jugador con nombre, color y 15 fichas.
 
         Args:
-            nombre (str): Player's name.
-            color (str): Checker color ("blanco" or "negro").
+            nombre (str): Nombre del jugador.
+            color (str): Color de las fichas ("blanco" o "negro").
         """
         self.nombre = nombre
         self.color = color
@@ -30,129 +30,136 @@ class Jugador:
         self.fichas = [Checker(color, None) for _ in range(15)]
 
     def __str__(self):
-        return f"{self.nombre} plays with {self.color} checkers"
+        """
+        Representacion en texto del jugador.
+
+        Returns:
+            str: Descripcion del jugador y su color de fichas.
+        """
+        return f"{self.nombre} juega con fichas {self.color}"
 
     def sumar_puntos(self, cantidad, verbose=True):
         """
-        Adds points to the player's score.
+        Suma puntos al puntaje del jugador.
 
         Args:
-            cantidad (int): Number of points to add.
-            verbose (bool): Whether to print the update.
+            cantidad (int): Cantidad de puntos a sumar.
+            verbose (bool): Si se debe imprimir el resultado.
         """
         self.puntos += cantidad
         if verbose:
-            print(f"{self.nombre} gains {cantidad} points. Total: {self.puntos}")
+            print(f"{self.nombre} gana {cantidad} puntos. Total: {self.puntos}")
 
     def sacar_ficha(self, verbose=True):
         """
-        Marks one checker as borne off.
+        Marca una ficha como retirada del tablero.
 
         Args:
-            verbose (bool): Whether to print the update.
+            verbose (bool): Si se debe imprimir el resultado.
         """
         self.fichas_fuera += 1
         if verbose:
-            print(
-                f"{self.nombre} has borne off a checker. Total off: {self.fichas_fuera}"
-            )
+            print(f"{self.nombre} ha retirado una ficha. Total fuera: {self.fichas_fuera}")
 
     def ha_ganado(self):
         """
-        Checks if the player has won (all checkers are off the board).
+        Verifica si el jugador ha ganado (todas sus fichas estan fuera).
 
         Returns:
-            bool: True if all checkers are in "off" position.
+            bool: True si todas las fichas estan en posicion "off".
         """
         return all(f._position_ == "off" for f in self.fichas)
 
     def fichas_en_estado(self, estado):
         """
-        Returns checkers in a specific state.
+        Devuelve las fichas que estan en un estado especifico.
 
         Args:
-            estado (str): Checker state ("bar", "off", or None).
+            estado (str): Estado de la ficha ("bar", "off" o None).
 
         Returns:
-            list: Checkers matching the given state.
+            list: Fichas que coinciden con el estado dado.
         """
         return [f for f in self.fichas if f._position_ == estado]
 
     def fichas_en_punto(self, punto):
         """
-        Returns checkers at a specific board point.
+        Devuelve las fichas que estan en un punto especifico del tablero.
 
         Args:
-            punto (int): Board point index.
+            punto (int): Indice del punto en el tablero.
 
         Returns:
-            list: Checkers located at that point.
+            list: Fichas ubicadas en ese punto.
         """
         return [f for f in self.fichas if f._position_ == punto]
 
     def puede_sacar_fichas(self, board):
         """
-        Checks if the player can start bearing off checkers.
+        Verifica si el jugador puede comenzar a retirar fichas.
 
         Args:
-            board (Board): The game board.
+            board (Board): El tablero de juego.
 
         Returns:
-            bool: True if all active checkers are in the home board.
+            bool: True si todas las fichas activas estan en la zona de salida.
         """
         if self.color == "blanco":
-            # White's home board is points 18-23
+            # Zona de salida del blanco: puntos 18 a 23
             rango_casa = range(18, 24)
         else:
-            # Black's home board is points 0-5
+            # Zona de salida del negro: puntos 0 a 5
             rango_casa = range(6)
-        
-        # Check if all checkers not yet borne off are in the home board
-        return all(f._position_ in rango_casa or f._position_ == "off" for f in self.fichas if f._position_ != 'bar')
+
+        return all(
+            f._position_ in rango_casa or f._position_ == "off"
+            for f in self.fichas
+            if f._position_ != "bar"
+        )
 
 
 class TurnManager:
     """
-    Manages turn rotation between two players.
+    Administra la rotacion de turnos entre dos jugadores.
 
-    Attributes:
-        jugadores (list): List of two Jugador objects.
-        indice_actual (int): Index of the current player.
+    Atributos:
+        jugadores (list): Lista de dos objetos Jugador.
+        indice_actual (int): Indice del jugador actual.
     """
 
     def __init__(self, jugador1, jugador2):
         """
-        Initializes the turn manager with two players.
+        Inicializa el gestor de turnos con dos jugadores.
 
         Args:
-            jugador1 (Jugador): First player.
-            jugador2 (Jugador): Second player.
+            jugador1 (Jugador): Primer jugador.
+            jugador2 (Jugador): Segundo jugador.
         """
         self.jugadores = [jugador1, jugador2]
         self.indice_actual = 0
 
     def jugador_actual(self):
         """
-        Returns the player whose turn it is.
+        Devuelve el jugador que tiene el turno actual.
 
         Returns:
-            Jugador: Current player.
+            Jugador: Jugador activo.
         """
         return self.jugadores[self.indice_actual]
 
     def siguiente_turno(self):
         """
-        Switches to the next player's turn.
+        Cambia al turno del siguiente jugador.
         """
         self.indice_actual = (self.indice_actual + 1) % len(self.jugadores)
 
     def mostrar_turno(self, verbose=True):
         """
-        Prints the current player's turn.
+        Muestra en consola el turno actual.
 
         Args:
-            verbose (bool): Whether to print the turn info.
+            verbose (bool): Si se debe imprimir el turno.
         """
         if verbose:
             jugador = self.jugador_actual()
-            print(f"\nTurn: {jugador.nombre} ({jugador.color})")
+            print(f"\nTurno: {jugador.nombre} ({jugador.color})")

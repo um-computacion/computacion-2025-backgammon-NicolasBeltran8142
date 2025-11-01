@@ -4,23 +4,23 @@ from core.player import Jugador, TurnManager
 
 class Game:
     """
-    Coordinates the overall Backgammon game logic, including board state,
-    dice rolls, player turns, move validation, and win conditions.
+    Coordina la lógica general del juego de Backgammon, incluyendo el estado del tablero,
+    tiradas de dados, turnos de jugadores, validación de movimientos y condición de victoria.
 
-    Attributes:
-        board (Board): The game board.
-        dice (Dice): The dice manager.
-        jugador1 (Jugador): Player 1 (white).
-        jugador2 (Jugador): Player 2 (black).
-        turnos (TurnManager): Manages turn rotation.
-        last_roll (list): Last dice roll values.
-        available_moves (list): Remaining moves based on dice.
-        historial (list): History of moves made.
+    Atributos:
+        board (Board): El tablero de juego.
+        dice (Dice): El gestor de dados.
+        jugador1 (Jugador): Jugador 1 (blanco).
+        jugador2 (Jugador): Jugador 2 (negro).
+        turnos (TurnManager): Administra la rotación de turnos.
+        last_roll (list): Última tirada de dados.
+        available_moves (list): Movimientos disponibles según los dados.
+        historial (list): Historial de movimientos realizados.
     """
 
     def __init__(self):
         """
-        Initializes the game with a fresh board, players, dice, and turn manager.
+        Inicializa el juego con tablero, jugadores, dados y gestor de turnos.
         """
         self.board = Board()
         self.dice = Dice()
@@ -35,7 +35,7 @@ class Game:
 
     def _asignar_fichas_a_jugadores(self):
         """
-        Assigns initial positions to each player's checkers based on standard setup.
+        Asigna las posiciones iniciales de las fichas según la configuración estándar.
         """
         posiciones = {
             "blanco": [0]*2 + [11]*5 + [16]*3 + [18]*5,
@@ -53,13 +53,12 @@ class Game:
                 jugador.fichas[i]._position_ = punto
                 self.board._puntos_[punto].append(jugador.fichas[i])
 
-
     def tirar_dados(self):
         """
-        Rolls the dice and updates available moves.
+        Lanza los dados y actualiza los movimientos disponibles.
 
-        Returns:
-            list: The two dice values rolled.
+        Retorna:
+            list: Valores obtenidos en la tirada.
         """
         self.last_roll = self.dice.roll_dice()
         self.available_moves = self.dice.get_moves()
@@ -67,68 +66,68 @@ class Game:
 
     def jugador_actual(self):
         """
-        Returns the player whose turn it is.
+        Retorna el jugador que tiene el turno actual.
 
-        Returns:
-            Jugador: The current player.
+        Retorna:
+            Jugador: El jugador activo.
         """
         return self.turnos.jugador_actual()
 
     def cambiar_turno(self):
         """
-        Switches to the next player's turn.
+        Cambia al turno del siguiente jugador.
         """
         self.turnos.siguiente_turno()
 
     def fichas_en_punto(self, punto, color):
         """
-        Returns the checkers of a given color at a specific point.
+        Retorna las fichas de un color en un punto específico del tablero.
 
         Args:
-            punto (int): Board point index.
-            color (str): Player color.
+            punto (int): Índice del punto en el tablero.
+            color (str): Color del jugador.
 
-        Returns:
-            list: List of checkers at that point.
+        Retorna:
+            list: Fichas en ese punto.
         """
         jugador = self._jugador_por_color(color)
         return [f for f in jugador.fichas if f._position_ == punto]
 
     def fichas_en_barra(self, color):
         """
-        Returns the checkers of a given color currently on the bar.
+        Retorna las fichas de un color que están en la barra.
 
         Args:
-            color (str): Player color.
+            color (str): Color del jugador.
 
-        Returns:
-            list: List of checkers on the bar.
+        Retorna:
+            list: Fichas en la barra.
         """
         jugador = self._jugador_por_color(color)
         return [f for f in jugador.fichas if f._position_ == "bar"]
 
     def fichas_borneadas(self, color):
         """
-        Returns the checkers of a given color that have been borne off.
+        Retorna las fichas de un color que ya fueron retiradas del tablero.
 
         Args:
-            color (str): Player color.
+            color (str): Color del jugador.
 
-        Returns:
-            list: List of checkers with position "off".
+        Retorna:
+            list: Fichas con posición "off".
         """
         jugador = self._jugador_por_color(color)
         return [f for f in jugador.fichas if f._position_ == "off"]
 
     def puntos_validos_de_origen(self, color):
         """
-        Returns the list of valid origin points for the current player.
+        Retorna los puntos válidos desde donde el jugador puede mover fichas.
 
         Args:
-            color (str): Player color.
+            color (str): Color del jugador.
 
-        Returns:
-            list: Valid origin points or ["bar"] if re-entry is required.
+        Retorna:
+            list: Puntos válidos o ["bar"] si hay fichas en la barra.
         """
         if self.fichas_en_barra(color):
             return ["bar"]
@@ -136,15 +135,15 @@ class Game:
 
     def puede_mover(self, origen, destino, color):
         """
-        Validates whether a move is legal based on game rules.
+        Verifica si un movimiento es válido según las reglas del juego.
 
         Args:
-            origen (int or str): Origin point or "bar".
-            destino (int or str): Destination point or "off".
-            color (str): Player color.
+            origen (int o str): Punto de origen o "bar".
+            destino (int o str): Punto de destino o "off".
+            color (str): Color del jugador.
 
-        Returns:
-            bool: True if the move is valid, False otherwise.
+        Retorna:
+            bool: True si el movimiento es válido, False si no lo es.
         """
         if self.fichas_en_barra(color) and origen != "bar":
             return False
@@ -162,24 +161,24 @@ class Game:
         distancia = self._calcular_distancia(origen, destino, color)
         if distancia not in self.available_moves:
             return False
-            
+
         destino_fichas = self.board._puntos_[destino]
         if destino_fichas and destino_fichas[-1]._color_ != color and len(destino_fichas) > 1:
             return False
-            
+
         return True
 
     def mover_ficha(self, origen, destino, color):
         """
-        Executes a move if it's valid, including capture logic and move tracking.
+        Ejecuta un movimiento válido, incluyendo captura y registro en el historial.
 
         Args:
-            origen (int or str): Origin point or "bar".
-            destino (int or str): Destination point or "off".
-            color (str): Player color.
+            origen (int o str): Punto de origen o "bar".
+            destino (int o str): Punto de destino o "off".
+            color (str): Color del jugador.
 
-        Returns:
-            bool: True if the move was successful, False otherwise.
+        Retorna:
+            bool: True si el movimiento fue exitoso, False si no lo fue.
         """
         if not self.puede_mover(origen, destino, color):
             return False
@@ -205,7 +204,7 @@ class Game:
             if origen != "bar":
                 self.board._puntos_[origen].pop()
             self.board._puntos_[destino].append(ficha)
-        
+
         if distancia in self.available_moves:
             self.available_moves.remove(distancia)
 
@@ -220,27 +219,41 @@ class Game:
 
     def _obtener_ficha_a_mover(self, origen, color):
         """
-        Retrieves the checker to be moved from the origin.
+        Obtiene la ficha que se va a mover desde el origen.
 
         Args:
-            origen (int or str): Origin point or "bar".
-            color (str): Player color.
+            origen (int o str): Punto de origen o "bar".
+            color (str): Color del jugador.
 
-        Returns:
-            Checker or None: The checker to move, if available.
+        Retorna:
+            Ficha o None: La ficha a mover, si existe.
         """
         fichas = self.fichas_en_barra(color) if origen == "bar" else self.fichas_en_punto(origen, color)
         return fichas[0] if fichas else None
 
     def _jugador_por_color(self, color):
         """
-        Returns the player object based on color.
+        Retorna el objeto jugador según el color.
+
+        Args:
+            color (str): "blanco" o "negro".
+
+        Retorna:
+            Jugador: El jugador correspondiente.
         """
         return self.jugador1 if color == "blanco" else self.jugador2
 
     def _calcular_distancia(self, origen, destino, color):
         """
-        Calculates the move distance based on origin and destination.
+        Calcula la distancia del movimiento según origen, destino y color.
+
+        Args:
+            origen (int o str): Punto de origen o "bar".
+            destino (int o str): Punto de destino o "off".
+            color (str): Color del jugador.
+
+        Retorna:
+            int: Distancia del movimiento.
         """
         if origen == "bar":
             return (24 - destino) if color == "blanco" else (destino + 1)
@@ -250,7 +263,10 @@ class Game:
 
     def verificar_ganador(self):
         """
-        Checks if any player has won the game.
+        Verifica si algún jugador ha ganado la partida.
+
+        Retorna:
+            str o None: Nombre del jugador ganador, o None si aún no hay ganador.
         """
         if len(self.fichas_borneadas("blanco")) == 15:
             return self.jugador1.nombre
@@ -260,11 +276,11 @@ class Game:
 
     def mostrar_estado(self):
         """
-        Displays the current game state in the console.
+        Muestra el estado actual del juego en la consola.
         """
         jugador = self.jugador_actual()
-        print(f"\nTurn: {jugador.nombre} ({jugador.color})")
-        print(f"Checkers on bar: {len(self.fichas_en_barra(jugador.color))}")
-        print(f"Checkers borne off: {len(self.fichas_borneadas(jugador.color))}")
-        print(f"Last roll: {self.last_roll}")
-        print(f"Available moves: {self.available_moves}")
+        print(f"\nTurno: {jugador.nombre} ({jugador.color})")
+        print(f"Fichas en la barra: {len(self.fichas_en_barra(jugador.color))}")
+        print(f"Fichas retiradas: {len(self.fichas_borneadas(jugador.color))}")
+        print(f"Última tirada: {self.last_roll}")
+        print(f"Movimientos disponibles: {self.available_moves}")
