@@ -7,30 +7,31 @@ from core.game import Game
 class TestUICoordinateFunctions(unittest.TestCase):
 
     def test_get_visual_column(self):
-        # Bottom-right quadrant (points 0-5)
         self.assertEqual(ui._get_visual_column(0), 11)
         self.assertEqual(ui._get_visual_column(5), 6)
-        # Bottom-left quadrant (points 6-11)
         self.assertEqual(ui._get_visual_column(6), 5)
         self.assertEqual(ui._get_visual_column(11), 0)
-        # Top-left quadrant (points 12-17)
         self.assertEqual(ui._get_visual_column(12), 0)
         self.assertEqual(ui._get_visual_column(17), 5)
-        # Top-right quadrant (points 18-23)
         self.assertEqual(ui._get_visual_column(18), 6)
         self.assertEqual(ui._get_visual_column(23), 11)
-        # Invalid
         self.assertEqual(ui._get_visual_column(24), -1)
+        
+    def test_get_column_x_coord(self):
+        # Test a column in the left half
+        x_left = ui._get_column_x_coord(0)
+        self.assertTrue(ui.BOARD_X < x_left < ui.BOARD_X + (ui.WIDTH - ui.BOARD_X) / 2)
+        # Test a column in the right half
+        x_right = ui._get_column_x_coord(6)
+        self.assertTrue(ui.BOARD_X + (ui.WIDTH - ui.BOARD_X) / 2 < x_right < ui.WIDTH)
 
     def test_get_point_center(self):
-        # Test a few points to ensure coordinates are within screen bounds
         x, y = ui.get_point_center(0)
         self.assertTrue(ui.BOARD_X < x < ui.WIDTH)
-        self.assertTrue(ui.HEIGHT/2 < y < ui.HEIGHT) # Bottom half
-
+        self.assertTrue(ui.HEIGHT/2 < y < ui.HEIGHT)
         x, y = ui.get_point_center(12)
         self.assertTrue(ui.BOARD_X < x < ui.WIDTH)
-        self.assertTrue(0 < y < ui.HEIGHT/2) # Top half
+        self.assertTrue(0 < y < ui.HEIGHT/2)
 
     def test_get_point_rect(self):
         rect = ui.get_point_rect(5)
@@ -40,24 +41,15 @@ class TestUICoordinateFunctions(unittest.TestCase):
 
     @patch('pygame_ui.ui.get_point_rect')
     def test_get_point_from_pos(self, mock_get_point_rect):
-        # Mock the rects for points 0 and 1
         mock_get_point_rect.side_effect = lambda i: {
             0: pygame.Rect(300, 400, 50, 300),
             1: pygame.Rect(350, 400, 50, 300)
         }.get(i, pygame.Rect(0,0,0,0))
-
-        # Test hitting point 0
         self.assertEqual(ui.get_point_from_pos((325, 500)), 0)
-        # Test hitting point 1
         self.assertEqual(ui.get_point_from_pos((375, 500)), 1)
-        # Test missing all points
         self.assertIsNone(ui.get_point_from_pos((10, 10)))
-
-        # Test bar
         bar_x = ui.BOARD_X + ui.MARGIN + 6 * ui.POINT_WIDTH + 10
         self.assertEqual(ui.get_point_from_pos((bar_x, 300)), "bar")
-        
-        # Test bear-off
         bear_off_x = ui.BEAR_OFF_X + 10
         self.assertEqual(ui.get_point_from_pos((bear_off_x, 300)), "off")
 
@@ -115,3 +107,55 @@ class TestUIDrawingFunctions(unittest.TestCase):
         self.game.available_moves = [1, 2]
         ui.draw_dice_and_moves(self.mock_screen, self.mock_font, self.game)
         self.assertTrue(mock_draw_text.call_count >= 4)
+
+class TestHandleEvent(unittest.TestCase):
+    def setUp(self):
+        self.game = MagicMock(spec=Game)
+        self.game.jugador_actual.return_value.color = "blanco"
+        self.game.board = MagicMock()
+        self.game.board._puntos_ = [[] for _ in range(24)]
+        self.game.available_moves = []
+        self.game.last_roll = []
+
+    @patch('pygame_ui.ui.Game')
+    def test_start_screen_click_start_button(self, mock_game_class):
+        mock_game_instance = MagicMock()
+        mock_game_class.return_value = mock_game_instance
+        event = MagicMock(type=pygame.MOUSEBUTTONDOWN, pos=ui.start_button.center)
+        
+        game, game_state, _, _, _, p1, p2, _, _, _ = ui.handle_event(event, None, ui.START_SCREEN, False, None, [], "P1", "P2", None)
+        
+        self.assertEqual(game_state, ui.GAME_SCREEN)
+        self.assertIsNotNone(game)
+        self.assertEqual(game.jugador1.nombre, "P1")
+
+    @patch('pygame.mouse.get_pos')
+    def test_game_screen_click_roll_dice(self, mock_get_pos):
+        mock_get_pos.return_value = ui.roll_dice_button.center
+        event = MagicMock(type=pygame.MOUSEBUTTONDOWN, pos=ui.roll_dice_button.center)
+
+        _, _, dice_rolled, _, _, _, _, _, _, _ = ui.handle_event(event, self.game, ui.GAME_SCREEN, False, None, [], "P1", "P2", None)
+        
+        self.assertTrue(dice_rolled)
+        self.game.tirar_dados.assert_called_once()
+
+    @patch('pygame.mouse.get_pos')
+    @patch('pygame_ui.ui.get_point_from_pos', return_value=17)
+    def test_game_screen_move_checker_successfully(self, mock_get_point, mock_get_pos):
+        mock_get_pos.return_value = (20, 20)
+        event = MagicMock(type=pygame.MOUSEBUTTONDOWN, pos=(20, 20))
+        self.game.mover_ficha.return_value = True
+        self.game.available_moves = []
+
+        _, _, _, selected_point, possible_moves, _, _, _, _, _ = ui.handle_event(event, self.game, ui.GAME_SCREEN, True, 18, [17], "P1", "P2", None)
+        
+        self.game.mover_ficha.assert_called_with(18, 17, "blanco")
+        self.assertIsNone(selected_point)
+        self.assertEqual(possible_moves, [])
+
+    def test_start_screen_type_in_input_box(self):
+        event = MagicMock(type=pygame.KEYDOWN, key=pygame.K_a, unicode='a')
+        
+        _, _, _, _, _, p1, _, _, _, _ = ui.handle_event(event, None, ui.START_SCREEN, False, None, [], "Player 1", "P2", ui.input_box1)
+        
+        self.assertEqual(p1, "Player 1a")

@@ -1,4 +1,6 @@
 import unittest
+from unittest.mock import patch
+from io import StringIO
 from core.game import Game
 
 class TestGame(unittest.TestCase):
@@ -107,6 +109,26 @@ class TestGame(unittest.TestCase):
         self.assertEqual(ultimo["destino"], destino)
         self.assertEqual(ultimo["dados"], (1, 2))
 
+    def test_puede_mover_falla_si_no_puede_sacar_fichas(self):
+        self.game.jugador1.fichas[0]._position_ = 10 # Not in home board
+        self.game.available_moves = [1]
+        self.assertFalse(self.game.puede_mover(18, "off", "blanco"))
+
+    def test_mover_ficha_falla_si_no_hay_ficha(self):
+        self.game.board._puntos_[18] = [] # Empty point
+        self.game.available_moves = [1]
+        self.assertFalse(self.game.mover_ficha(18, 17, "blanco"))
+
+    def test_calcular_distancia(self):
+        # White
+        self.assertEqual(self.game._calcular_distancia("bar", 23, "blanco"), 1)
+        self.assertEqual(self.game._calcular_distancia(23, "off", "blanco"), 1)
+        # Black
+        self.assertEqual(self.game._calcular_distancia("bar", 0, "negro"), 1)
+        self.assertEqual(self.game._calcular_distancia(0, "off", "negro"), 1)
+        # Normal
+        self.assertEqual(self.game._calcular_distancia(10, 15, "blanco"), 5)
+
     # Simulación de turno
     def test_simular_turno_completo_con_movimiento_valido(self):
         self.game.tirar_dados()
@@ -138,3 +160,13 @@ class TestGame(unittest.TestCase):
         for ficha in self.game.jugador2.fichas:
             ficha._position_ = "off"
         self.assertEqual(self.game.verificar_ganador(), "Jugador 2")
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_mostrar_estado(self, mock_stdout):
+        self.game.last_roll = (5, 6)
+        self.game.available_moves = [5, 6]
+        self.game.mostrar_estado()
+        output = mock_stdout.getvalue()
+        self.assertIn("Turn: Jugador 1 (blanco)", output)
+        self.assertIn("Last roll: (5, 6)", output)
+        self.assertIn("Available moves: [5, 6]", output)
