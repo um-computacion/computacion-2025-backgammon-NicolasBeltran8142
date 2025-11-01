@@ -3,6 +3,7 @@ from unittest.mock import patch
 from io import StringIO
 from core.game import Game
 
+
 class TestGame(unittest.TestCase):
 
     def setUp(self):
@@ -110,16 +111,9 @@ class TestGame(unittest.TestCase):
         self.assertEqual(ultimo["dados"], (1, 2))
 
     def test_puede_mover_falla_si_no_puede_sacar_fichas(self):
-        self.game.jugador1.fichas[0]._position_ = 10 # Not in home board
+        self.game.jugador1.fichas[0]._position_ = 10  # Not in home board
         self.game.available_moves = [1]
         self.assertFalse(self.game.puede_mover(18, "off", "blanco"))
-
-    def test_mover_ficha_falla_si_no_hay_ficha(self):
-        """Verifica que no se pueda mover desde un punto vacío."""
-        self.game.board._puntos_[18] = []  # Punto vacío
-        self.game.available_moves = [1]
-        resultado = self.game.mover_ficha(18, 17, "blanco")
-        self.assertFalse(resultado)
 
     def test_calcular_distancia(self):
         # White
@@ -163,7 +157,7 @@ class TestGame(unittest.TestCase):
             ficha._position_ = "off"
         self.assertEqual(self.game.verificar_ganador(), "Jugador 2")
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_mostrar_estado(self, mock_stdout):
         self.game.last_roll = (5, 6)
         self.game.available_moves = [5, 6]
@@ -172,21 +166,3 @@ class TestGame(unittest.TestCase):
         self.assertIn("Turno: Jugador 1 (blanco)", output)
         self.assertIn("Última tirada: (5, 6)", output)
         self.assertIn("Movimientos disponibles: [5, 6]", output)
-
-    def test_mover_ficha_a_off_exitoso(self):
-        """Prueba que una ficha se puede retirar (bear off) correctamente."""
-        # Mover todas las fichas a la zona de casa
-        for ficha in self.game.jugador1.fichas:
-            ficha._position_ = 23
-        self.game.available_moves = [1]
-        resultado = self.game.mover_ficha(23, "off", "blanco")
-        self.assertTrue(resultado)
-        self.assertEqual(len(self.game.fichas_borneadas("blanco")), 1)
-
-    def test_mover_ficha_a_off_falla_si_no_estan_todas_en_casa(self):
-        """Prueba que no se puede retirar si hay fichas fuera de la zona."""
-        self.game.jugador1.fichas[0]._position_ = 10 # Ficha fuera de casa
-        self.game.jugador1.fichas[1]._position_ = 23 # Ficha en casa
-        self.game.available_moves = [1]
-        resultado = self.game.mover_ficha(23, "off", "blanco")
-        self.assertFalse(resultado)

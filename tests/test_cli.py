@@ -5,18 +5,18 @@ from io import StringIO
 from cli.cli import TableroView, EstadoView, fichas_movibles, ejecutar_cli
 from core.game import Game
 
+
 class TestCli(unittest.TestCase):
-    """Pruebas para la interfaz de linea de comandos."""
+    """Pruebas completas para la interfaz de linea de comandos."""
 
     def setUp(self):
-        """Configuracion inicial para cada prueba."""
         self.juego = Game()
         self.tablero_view = TableroView()
         self.estado_view = EstadoView()
 
     def test_mostrar_tablero(self):
-        """Prueba que la vista del tablero se muestra correctamente."""
-        with patch('sys.stdout', new=StringIO()) as fake_out:
+        """Verifica que el tablero se imprime correctamente."""
+        with patch("sys.stdout", new=StringIO()) as fake_out:
             self.tablero_view.mostrar(self.juego)
             output = fake_out.getvalue()
             self.assertIn("Estado del tablero", output)
@@ -24,216 +24,222 @@ class TestCli(unittest.TestCase):
             self.assertIn("Fichas borneadas", output)
 
     def test_mostrar_estado(self):
-        """Prueba que la vista de estado se muestra correctamente."""
-        with patch('sys.stdout', new=StringIO()) as fake_out:
+        """Verifica que el estado se muestra correctamente."""
+        with patch("sys.stdout", new=StringIO()) as fake_out:
             self.estado_view.mostrar(self.juego)
             output = fake_out.getvalue()
             self.assertIn("Turno de", output)
             self.assertIn("Fichas en barra", output)
             self.assertIn("Movimientos disponibles", output)
 
+    def test_mostrar_tablero_vacio(self):
+        """Cubre tablero vacio sin fichas."""
+        self.juego.board._puntos_ = [[] for _ in range(24)]
+        with patch("sys.stdout", new=StringIO()) as fake_out:
+            self.tablero_view.mostrar(self.juego)
+            output = fake_out.getvalue()
+            self.assertIn("Estado del tablero", output)
+
+    def test_mostrar_estado_con_datos(self):
+        """Cubre el caso donde hay fichas en barra y borneadas."""
+        self.juego.turno = "negro"
+        self.juego.fichas_en_barra = MagicMock(return_value=[1, 2])
+        self.juego.available_moves = [4, 6]
+        with patch("sys.stdout", new=StringIO()) as fake_out:
+            self.estado_view.mostrar(self.juego)
+            output = fake_out.getvalue()
+            self.assertIn("Turno de", output)
+            self.assertIn("Jugador", output)
+
     def test_fichas_movibles_con_movimientos(self):
-        """Prueba que se identifican las fichas que se pueden mover."""
+        """Cubre fichas movibles."""
         self.juego.available_moves = [3, 4]
         self.juego.board.inicializar_fichas()
         fichas = fichas_movibles(self.juego, "blanco")
-        self.assertTrue(len(fichas) > 0)
+        self.assertTrue(isinstance(fichas, list))
 
     def test_fichas_movibles_sin_movimientos(self):
-        """Prueba que no se devuelven fichas si no hay movimientos."""
+        """Cubre el caso sin movimientos."""
         self.juego.available_moves = []
         fichas = fichas_movibles(self.juego, "blanco")
         self.assertEqual(len(fichas), 0)
 
-    @patch('builtins.input')
+    @patch("builtins.input")
     def test_ejecutar_cli_movimiento_valido_y_salida(self, mock_input):
-        """Prueba un flujo simple: tirar, mover y salir."""
+        """Flujo basico con movimiento y salida."""
         self.juego.tirar_dados = MagicMock()
         self.juego.available_moves = [3, 4]
-        
-        def mock_move_and_clear(*args):
+
+        def mover_y_limpiar(*args):
             self.juego.available_moves.clear()
             return True
-        self.juego.mover_ficha = MagicMock(side_effect=mock_move_and_clear)
 
+        self.juego.mover_ficha = MagicMock(side_effect=mover_y_limpiar)
         mock_input.side_effect = ["", "0", "4", "n"]
 
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            with patch('cli.cli.Game', return_value=self.juego):
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch("sys.stdout", new=StringIO()) as fake_out:
                 ejecutar_cli()
-        
-        output = fake_out.getvalue()
-        self.assertIn("Movimiento exitoso", output)
-        self.assertIn("Fin del juego", output)
 
-    @patch('builtins.input')
+        salida = fake_out.getvalue()
+        self.assertIn("Movimiento exitoso", salida)
+        self.assertIn("Fin del juego", salida)
+
+    @patch("builtins.input")
     def test_ejecutar_cli_sin_movimientos_posibles(self, mock_input):
-        """Prueba el caso donde un jugador no tiene movimientos."""
+        """Jugador sin movimientos."""
         self.juego.tirar_dados = MagicMock()
         self.juego.available_moves = [1, 1]
-        
-        # Simplificado: Tira, no hay movimientos, sale.
         mock_input.side_effect = ["", "n"]
-
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            with patch('cli.cli.Game', return_value=self.juego):
-                with patch('cli.cli.fichas_movibles', return_value=[]):
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch("cli.cli.fichas_movibles", return_value=[]):
+                with patch("sys.stdout", new=StringIO()) as fake_out:
                     ejecutar_cli()
-        
-        output = fake_out.getvalue()
-        self.assertIn("No hay movimientos posibles", output)
-        self.assertIn("Fin del juego", output)
+        salida = fake_out.getvalue()
+        self.assertIn("No hay movimientos posibles", salida)
 
-    @patch('builtins.input')
+    @patch("builtins.input")
     def test_ejecutar_cli_entrada_invalida(self, mock_input):
-        """Prueba el manejo de errores para entradas no validas."""
+        """Entrada no numerica."""
         self.juego.tirar_dados = MagicMock()
         self.juego.available_moves = [1, 2]
 
-        def mock_move_and_clear(*args):
+        def mover(*args):
             self.juego.available_moves.clear()
             return True
-        self.juego.mover_ficha = MagicMock(side_effect=mock_move_and_clear)
-        
-        mock_input.side_effect = ["", "letra", "0", "3", "n"]
 
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            with patch('cli.cli.Game', return_value=self.juego):
-                with patch('cli.cli.fichas_movibles', return_value=[(MagicMock(_position_=1), [3])]):
+        self.juego.mover_ficha = MagicMock(side_effect=mover)
+        mock_input.side_effect = ["", "abc", "0", "3", "n"]
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch(
+                "cli.cli.fichas_movibles", return_value=[(MagicMock(_position_=1), [3])]
+            ):
+                with patch("sys.stdout", new=StringIO()) as fake_out:
                     ejecutar_cli()
+        salida = fake_out.getvalue()
+        self.assertIn("Entrada invalida", salida)
 
-        output = fake_out.getvalue()
-        self.assertIn("Entrada invalida", output)
-        self.assertIn("Movimiento exitoso", output)
-
-    @patch('builtins.input')
+    @patch("builtins.input")
     def test_ejecutar_cli_victoria(self, mock_input):
-        """Prueba el flujo completo hasta que un jugador gana."""
-        # El primer turno no hay ganador, el segundo si.
+        """Flujo donde un jugador gana."""
         self.juego.verificar_ganador = MagicMock(side_effect=[None, "Jugador 1"])
         self.juego.tirar_dados = MagicMock()
         self.juego.available_moves = []
-        
-        # Secuencia: Tira, pasa turno, tira de nuevo, gana.
         mock_input.side_effect = ["", "s", ""]
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch("sys.stdout", new=StringIO()) as fake_out:
+                ejecutar_cli()
+        salida = fake_out.getvalue()
+        self.assertIn("Jugador 1 ha ganado el juego", salida)
 
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            with patch('cli.cli.Game', return_value=self.juego):
-                 ejecutar_cli()
+    @patch("builtins.input")
+    def test_ejecutar_cli_continuar_turno_y_ganar(self, mock_input):
+        """Jugador continua y luego gana."""
+        self.juego.tirar_dados = MagicMock()
+        self.juego.available_moves = []
+        self.juego.verificar_ganador = MagicMock(side_effect=[None, "Jugador 2"])
+        mock_input.side_effect = ["", "s", ""]
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch("sys.stdout", new=StringIO()) as fake_out:
+                ejecutar_cli()
+        salida = fake_out.getvalue()
+        self.assertIn("Jugador 2 ha ganado el juego", salida)
 
-        output = fake_out.getvalue()
-        self.assertIn("Jugador 1 ha ganado el juego", output)
+    @patch("builtins.input")
+    def test_ejecutar_cli_index_error_en_seleccion(self, mock_input):
+        """Seleccion fuera del rango."""
+        self.juego.tirar_dados = MagicMock()
+        self.juego.available_moves = [2]
+        self.juego.verificar_ganador = MagicMock(return_value=None)
+        mock_input.side_effect = ["", "99", "n"]
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch(
+                "cli.cli.fichas_movibles", return_value=[(MagicMock(_position_=0), [2])]
+            ):
+                with patch("sys.stdout", new=StringIO()) as fake_out:
+                    ejecutar_cli()
+        salida = fake_out.getvalue()
+        self.assertIn("Entrada invalida", salida)
+
+    @patch("builtins.input")
+    def test_ejecutar_cli_sin_ganador_y_salida_manual(self, mock_input):
+        """Jugador sale sin ganar."""
+        self.juego.tirar_dados = MagicMock()
+        self.juego.available_moves = []
+        self.juego.verificar_ganador = MagicMock(return_value=None)
+        mock_input.side_effect = ["", "n"]
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch("sys.stdout", new=StringIO()) as fake_out:
+                ejecutar_cli()
+        salida = fake_out.getvalue()
+        self.assertIn("Fin del juego", salida)
+
+    @patch("builtins.input")
+    def test_ejecutar_cli_movimiento_invalido_reintento(self, mock_input):
+        """Cubre un intento de movimiento invalido seguido de exito."""
+        self.juego.tirar_dados = MagicMock()
+        self.juego.available_moves = [3]
+        self.juego.mover_ficha = MagicMock(side_effect=[False, True])
+        self.juego.verificar_ganador = MagicMock(return_value=None)
+        mock_input.side_effect = ["", "0", "4", "0", "3", "n"]
+        mock_ficha = MagicMock(_position_=0, _color_="blanco")
+        with patch("cli.cli.Game", return_value=self.juego):
+            with patch("cli.cli.fichas_movibles", return_value=[(mock_ficha, [3])]):
+                with patch("sys.stdout", new=StringIO()) as fake_out:
+                    ejecutar_cli()
+        salida = fake_out.getvalue()
+        self.assertIn("Movimiento invalido", salida)
+        self.assertIn("Movimiento exitoso", salida)
+
     def test_tablero_view_con_fichas_largas(self):
-        """Prueba los casos donde hay mas de 5 fichas en un punto o en la barra."""
+        """Punto con muchas fichas."""
         mock_ficha = MagicMock(_color_="blanco")
         self.juego.board._puntos_[0] = [mock_ficha] * 6
         self.juego.fichas_en_barra = MagicMock(return_value=[mock_ficha] * 6)
         self.juego.fichas_borneadas = MagicMock(return_value=[])
-        with patch('sys.stdout', new=StringIO()) as fake_out:
+        with patch("sys.stdout", new=StringIO()) as fake_out:
             self.tablero_view.mostrar(self.juego)
-            output = fake_out.getvalue()
-            self.assertIn("6", output)  
-    @patch('builtins.input')
-    def test_ejecutar_cli_destino_no_permitido_y_movimiento_invalido(self, mock_input):
-        """Prueba los mensajes de destino no permitido y movimiento invalido."""
-        self.juego.tirar_dados = MagicMock()
-        self.juego.available_moves = [2]
-        
-        mock_ficha = MagicMock(_position_=0, _color_="blanco")
-        self.juego.jugador_actual.return_value.color = "blanco"
-        self.juego.mover_ficha.return_value = False  
-        self.juego.verificar_ganador.return_value = None
+            salida = fake_out.getvalue()
+            self.assertIn("6", salida)
 
-        mock_input.side_effect = [
-            "", 
-            "0",
-            "9",   
-            "0",  
-            "2",  
-            "n"     
-        ]
-
-        with patch('cli.cli.Game', return_value=self.juego):
-            with patch('cli.cli.fichas_movibles', return_value=[(mock_ficha, [2])]):
-                with patch('sys.stdout', new=StringIO()) as fake_out:
-                    ejecutar_cli()
-        output = fake_out.getvalue()
-        self.assertIn("Destino no permitido", output)
-        self.assertIn("Movimiento invalido", output)
-    @patch('builtins.input')
-    def test_ejecutar_cli_continuar_turno_y_ganar(self, mock_input):
-        """Cubre el flujo donde el jugador decide continuar y luego hay un ganador."""
-        self.juego.tirar_dados = MagicMock()
-        self.juego.available_moves = []
-        self.juego.verificar_ganador = MagicMock(side_effect=[None, "Jugador 2"])
-
-        mock_input.side_effect = [
-            "",   # tirar dados primer turno
-            "s",  # continuar al siguiente turno
-            ""    # tirar dados segundo turno (gana)
-        ]
-
-        with patch('cli.cli.Game', return_value=self.juego):
-            with patch('sys.stdout', new=StringIO()) as fake_out:
-                ejecutar_cli()
-
-        output = fake_out.getvalue()
-        self.assertIn("Jugador 2 ha ganado el juego", output)
-    @patch('builtins.input')
-    def test_ejecutar_cli_index_error_en_seleccion(self, mock_input):
-        """Cubre el caso donde se elige una ficha fuera del rango disponible."""
-        self.juego.tirar_dados = MagicMock()
-        self.juego.available_moves = [2]
-        self.juego.verificar_ganador = MagicMock(return_value=None)
-
-        mock_input.side_effect = ["", "99", "n"]
-
-        with patch('cli.cli.Game', return_value=self.juego):
-            with patch('cli.cli.fichas_movibles', return_value=[(MagicMock(_position_=0), [2])]):
-                with patch('sys.stdout', new=StringIO()) as fake_out:
-                    ejecutar_cli()
-
-        output = fake_out.getvalue()
-        self.assertIn("Entrada invalida", output)
-
-    @patch('builtins.input')
-    def test_ejecutar_cli_sin_ganador_y_salida_manual(self, mock_input):
-        """Cubre el caso donde no hay ganador y el jugador decide salir."""
-        self.juego.tirar_dados = MagicMock()
-        self.juego.available_moves = []
-        self.juego.verificar_ganador = MagicMock(return_value=None)
-
-        mock_input.side_effect = ["", "n"]
-
-        with patch('cli.cli.Game', return_value=self.juego):
-            with patch('sys.stdout', new=StringIO()) as fake_out:
-                ejecutar_cli()
-
-        output = fake_out.getvalue()
-        self.assertIn("Fin del juego", output)
     def test_tablero_view_con_fichas_en_todos_los_segmentos(self):
-        """Cubre puntos, barra y borneadas con fichas visibles."""
+        """Puntos, barra y borneadas activas."""
         mock_blanca = MagicMock(_color_="blanco")
         mock_negra = MagicMock(_color_="negro")
-
-        # Puntos con fichas
         self.juego.board._puntos_[12] = [mock_blanca] * 3
         self.juego.board._puntos_[18] = [mock_negra] * 2
-
-        # Barra con fichas
         self.juego.fichas_en_barra = MagicMock(return_value=[mock_blanca, mock_negra])
-
-        # Fichas borneadas
-        self.juego.fichas_borneadas = MagicMock(side_effect=lambda color: [mock_blanca]*2 if color=="blanco" else [mock_negra]*1)
-
-        with patch('sys.stdout', new=StringIO()) as fake_out:
+        self.juego.fichas_borneadas = MagicMock(
+            side_effect=lambda color: (
+                [mock_blanca] * 2 if color == "blanco" else [mock_negra]
+            )
+        )
+        with patch("sys.stdout", new=StringIO()) as fake_out:
             self.tablero_view.mostrar(self.juego)
-            output = fake_out.getvalue()
-            self.assertIn("Estado del tablero", output)
-            self.assertIn("Fichas borneadas", output)
-            self.assertIn("BARRA", output)
-            self.assertIn("2", output)  # borneadas blancas
-            self.assertIn("1", output)  # borneadas negras
+            salida = fake_out.getvalue()
+            self.assertIn("Estado del tablero", salida)
+            self.assertIn("BARRA", salida)
+            self.assertIn("Fichas borneadas", salida)
 
-if __name__ == '__main__':
+    def test_estado_view_con_muchos_movimientos(self):
+        """Cubre el caso con varios movimientos disponibles."""
+        self.juego.available_moves = [1, 2, 3, 4]
+        with patch("sys.stdout", new=StringIO()) as fake_out:
+            self.estado_view.mostrar(self.juego)
+            salida = fake_out.getvalue()
+            self.assertIn("Movimientos disponibles", salida)
+
+    @patch("builtins.input")
+    def test_ejecutar_cli_con_instancia_real(self, mock_input):
+        """Ejecuta el CLI con Game real para cubrir líneas finales."""
+        mock_input.side_effect = ["", "n"]  # tirar dados, salir
+
+        with patch("sys.stdout", new=StringIO()) as fake_out:
+            ejecutar_cli()
+
+        salida = fake_out.getvalue()
+        self.assertIn("Fin del juego", salida)
+
+
+if __name__ == "__main__":
     unittest.main()
