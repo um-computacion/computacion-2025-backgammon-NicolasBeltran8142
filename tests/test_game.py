@@ -115,9 +115,11 @@ class TestGame(unittest.TestCase):
         self.assertFalse(self.game.puede_mover(18, "off", "blanco"))
 
     def test_mover_ficha_falla_si_no_hay_ficha(self):
-        self.game.board._puntos_[18] = [] # Empty point
+        """Verifica que no se pueda mover desde un punto vacío."""
+        self.game.board._puntos_[18] = []  # Punto vacío
         self.game.available_moves = [1]
-        self.assertFalse(self.game.mover_ficha(18, 17, "blanco"))
+        resultado = self.game.mover_ficha(18, 17, "blanco")
+        self.assertFalse(resultado)
 
     def test_calcular_distancia(self):
         # White
@@ -167,6 +169,24 @@ class TestGame(unittest.TestCase):
         self.game.available_moves = [5, 6]
         self.game.mostrar_estado()
         output = mock_stdout.getvalue()
-        self.assertIn("Turn: Jugador 1 (blanco)", output)
-        self.assertIn("Last roll: (5, 6)", output)
-        self.assertIn("Available moves: [5, 6]", output)
+        self.assertIn("Turno: Jugador 1 (blanco)", output)
+        self.assertIn("Última tirada: (5, 6)", output)
+        self.assertIn("Movimientos disponibles: [5, 6]", output)
+
+    def test_mover_ficha_a_off_exitoso(self):
+        """Prueba que una ficha se puede retirar (bear off) correctamente."""
+        # Mover todas las fichas a la zona de casa
+        for ficha in self.game.jugador1.fichas:
+            ficha._position_ = 23
+        self.game.available_moves = [1]
+        resultado = self.game.mover_ficha(23, "off", "blanco")
+        self.assertTrue(resultado)
+        self.assertEqual(len(self.game.fichas_borneadas("blanco")), 1)
+
+    def test_mover_ficha_a_off_falla_si_no_estan_todas_en_casa(self):
+        """Prueba que no se puede retirar si hay fichas fuera de la zona."""
+        self.game.jugador1.fichas[0]._position_ = 10 # Ficha fuera de casa
+        self.game.jugador1.fichas[1]._position_ = 23 # Ficha en casa
+        self.game.available_moves = [1]
+        resultado = self.game.mover_ficha(23, "off", "blanco")
+        self.assertFalse(resultado)
