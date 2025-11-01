@@ -1,6 +1,3 @@
-"""Módulo que contiene las clases Checker y Punto, y la función validar_movimiento."""
-
-
 class Checker:
     """
     Represents a game piece (checker) with a color and current position.

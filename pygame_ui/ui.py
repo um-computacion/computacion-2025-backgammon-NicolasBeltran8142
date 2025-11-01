@@ -1,5 +1,4 @@
 import pygame
-import sys
 from core.game import Game
 
 # --- Constants ---
@@ -283,7 +282,6 @@ def ejecutar_pygame():
         pygame.display.flip()
 
     pygame.quit()
-    sys.exit()
 
 if __name__ == '__main__':
     ejecutar_pygame()

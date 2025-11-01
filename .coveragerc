@@ -1,4 +1,8 @@
 [run]
+source = core, cli, pygame_ui
 omit =
     */venv/*
     */tests/*
+
+[report]
+show_missing = True

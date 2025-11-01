@@ -1,4 +1,6 @@
 import unittest
+import io
+from unittest.mock import patch
 from core.board import Board
 from core.checker import Checker
 
@@ -98,3 +100,20 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(jugada["origen"], 0)
         self.assertEqual(jugada["destino"], 5)
         self.assertTrue(jugada["captura"])
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_mostrar_historial(self, mock_stdout):
+        self.board.registrar_jugada("blanco", 0, 5, captura=True)
+        self.board.mostrar_historial()
+        output = mock_stdout.getvalue()
+        self.assertIn("Move history:", output)
+        self.assertIn("blanco moved from 0 to 5 (capture)", output)
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_mostrar_tablero(self, mock_stdout):
+        self.board.mostrar_tablero()
+        output = mock_stdout.getvalue()
+        self.assertIn("TOP ZONE", output)
+        self.assertIn("BOTTOM ZONE", output)
+        self.assertIn("B", output)
+        self.assertIn("N", output)
