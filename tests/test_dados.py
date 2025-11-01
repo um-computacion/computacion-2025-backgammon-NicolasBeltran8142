@@ -39,3 +39,10 @@ class TestDice(unittest.TestCase):
         dice = Dice()
         dice.set_values_for_test(2, 4)
         self.assertEqual(dice.get_moves(), [2, 4])
+
+    def test_set_values_for_test_invalid_values(self):
+        dice = Dice()
+        with self.assertRaises(ValueError):
+            dice.set_values_for_test(0, 5)
+        with self.assertRaises(ValueError):
+            dice.set_values_for_test(7, 5)

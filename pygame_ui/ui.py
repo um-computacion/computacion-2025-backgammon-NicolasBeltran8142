@@ -1,4 +1,5 @@
 import pygame
+import sys
 from core.game import Game
 
 # --- Constants ---
@@ -34,6 +35,10 @@ POINT_WIDTH = (WIDTH - PANEL_WIDTH - BEAR_OFF_WIDTH - 2 * MARGIN) / 13
 BAR_WIDTH = POINT_WIDTH
 CHECKER_RADIUS = int(POINT_WIDTH / 2.5)
 BEAR_OFF_X = WIDTH - BEAR_OFF_WIDTH
+roll_dice_button = pygame.Rect(50, 450, 200, 50)
+input_box1 = pygame.Rect(WIDTH//2 - 150, HEIGHT//2 - 100, 300, 50)
+input_box2 = pygame.Rect(WIDTH//2 - 150, HEIGHT//2, 300, 50)
+start_button = pygame.Rect(WIDTH//2 - 100, HEIGHT//2 + 100, 200, 50)
 
 # --- Coordinate Calculation Helpers ---
 def _get_visual_column(point_index):
@@ -104,8 +109,8 @@ def draw_board(screen):
     # Draw Bear-off areas
     pygame.draw.rect(screen, PANEL_COLOR, (BEAR_OFF_X, 0, BEAR_OFF_WIDTH, HEIGHT))
     pygame.draw.line(screen, FONT_COLOR, (BEAR_OFF_X, HEIGHT//2), (WIDTH, HEIGHT//2), 2)
-    draw_text(screen, "White Off", pygame.font.Font(None, 24), FONT_COLOR, BEAR_OFF_X + BEAR_OFF_WIDTH/2, 10)
-    draw_text(screen, "Black Off", pygame.font.Font(None, 24), FONT_COLOR, BEAR_OFF_X + BEAR_OFF_WIDTH/2, HEIGHT - 20)
+    draw_text(screen, "Fichas Blancas", pygame.font.Font(None, 24), FONT_COLOR, BEAR_OFF_X + BEAR_OFF_WIDTH/2, 10)
+    draw_text(screen, "Fichas Negras", pygame.font.Font(None, 24), FONT_COLOR, BEAR_OFF_X + BEAR_OFF_WIDTH/2, HEIGHT - 20)
 
 
 def draw_checkers(screen, font, game):
@@ -151,18 +156,82 @@ def draw_side_panel(screen, font, game):
     draw_text(screen, "Backgammon", font, FONT_COLOR, PANEL_WIDTH // 2, 50)
     if game:
         p1, p2, current = game.jugador1, game.jugador2, game.jugador_actual()
-        draw_text(screen, f"White: {p1.nombre}", font, FONT_COLOR, PANEL_WIDTH // 2, 150)
-        draw_text(screen, f"Black: {p2.nombre}", font, FONT_COLOR, PANEL_WIDTH // 2, 200)
-        draw_text(screen, "Turn:", font, FONT_COLOR, PANEL_WIDTH // 2, 300)
+        draw_text(screen, f"Blancas: {p1.nombre}", font, FONT_COLOR, PANEL_WIDTH // 2, 150)
+        draw_text(screen, f"Negras: {p2.nombre}", font, FONT_COLOR, PANEL_WIDTH // 2, 200)
+        draw_text(screen, "Turno:", font, FONT_COLOR, PANEL_WIDTH // 2, 300)
         draw_text(screen, current.nombre, font, (255, 0, 0), PANEL_WIDTH // 2, 350)
 
 def draw_dice_and_moves(screen, font, game):
     if game.last_roll:
-        draw_text(screen, "Dice:", font, FONT_COLOR, 150, 550)
-        draw_text(screen, f"{game.last_roll[0]} & {game.last_roll[1]}", font, (0,0,255), 150, 600)
+        draw_text(screen, "Dados:", font, FONT_COLOR, 150, 550)
+        draw_text(screen, f"{game.last_roll[0]} y {game.last_roll[1]}", font, (0,0,255), 150, 600)
     if game.available_moves:
-        draw_text(screen, "Moves:", font, FONT_COLOR, 150, 650)
+        draw_text(screen, "Movimientos:", font, FONT_COLOR, 150, 650)
         draw_text(screen, str(game.available_moves), font, (0,0,255), 150, 700)
+
+def handle_event(event, game, game_state, dice_rolled, selected_point, possible_moves, player1_name, player2_name, active_box):
+    invalid_move_message = ""
+    invalid_move_timer = 0
+    if game_state == START_SCREEN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if input_box1.collidepoint(event.pos):
+                active_box = input_box1
+                player1_name = ""
+            elif input_box2.collidepoint(event.pos):
+                active_box = input_box2
+                player2_name = ""
+            elif start_button.collidepoint(event.pos):
+                game, game_state = Game(), GAME_SCREEN
+                game.jugador1.nombre, game.jugador2.nombre = player1_name, player2_name
+            else:
+                active_box = None
+        if event.type == pygame.KEYDOWN and active_box:
+            name_ptr = player1_name if active_box == input_box1 else player2_name
+            if event.key == pygame.K_BACKSPACE: name_ptr = name_ptr[:-1]
+            else: name_ptr += event.unicode
+            if active_box == input_box1: player1_name = name_ptr
+            else: player2_name = name_ptr
+    elif game_state == GAME_SCREEN:
+        color = game.jugador_actual().color
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            if roll_dice_button.collidepoint(pos) and not dice_rolled:
+                game.tirar_dados()
+                dice_rolled = True
+            elif dice_rolled:
+                clicked_dest = get_point_from_pos(pos)
+                if selected_point is not None and clicked_dest in possible_moves:
+                    if game.mover_ficha(selected_point, clicked_dest, color):
+                        selected_point, possible_moves = None, []
+                        if not game.available_moves:
+                            game.cambiar_turno()
+                            dice_rolled = False
+                    else:
+                        invalid_move_message = "Movimiento inválido"
+                        invalid_move_timer = pygame.time.get_ticks()
+                elif clicked_dest is not None:
+                    if game.jugador_actual().puede_sacar_fichas(game.board) and game.puede_mover(clicked_dest, "off", color):
+                        if game.mover_ficha(clicked_dest, "off", color):
+                            if not game.available_moves:
+                                game.cambiar_turno()
+                                dice_rolled = False
+                        else:
+                            invalid_move_message = "Movimiento inválido"
+                            invalid_move_timer = pygame.time.get_ticks()
+                    elif clicked_dest == "bar" or (clicked_dest != "off" and game.board._puntos_[clicked_dest] and game.board._puntos_[clicked_dest][-1]._color_ == color):
+                        selected_point = clicked_dest
+                        possible_moves = []
+                        for move in set(game.available_moves):
+                            if color == "blanco":
+                                dest = 24 - move if selected_point == "bar" else selected_point - move
+                            else:
+                                dest = move - 1 if selected_point == "bar" else selected_point + move
+                            
+                            if game.puede_mover(selected_point, dest, color):
+                                possible_moves.append(dest)
+                    else:
+                        selected_point, possible_moves = None, []
+    return game, game_state, dice_rolled, selected_point, possible_moves, player1_name, player2_name, active_box, invalid_move_message, invalid_move_timer
 
 def ejecutar_pygame():
     pygame.init()
@@ -174,13 +243,9 @@ def ejecutar_pygame():
     game_state = START_SCREEN
     game = None
 
-    player1_name, player2_name = "Player 1", "Player 2"
-    input_box1 = pygame.Rect(WIDTH//2 - 150, HEIGHT//2 - 100, 300, 50)
-    input_box2 = pygame.Rect(WIDTH//2 - 150, HEIGHT//2, 300, 50)
-    start_button = pygame.Rect(WIDTH//2 - 100, HEIGHT//2 + 100, 200, 50)
+    player1_name, player2_name = "Jugador 1", "Jugador 2"
     active_box = None
 
-    roll_dice_button = pygame.Rect(50, 450, 200, 50)
     dice_rolled, selected_point, possible_moves = False, None, []
     
     invalid_move_message = ""
@@ -188,71 +253,13 @@ def ejecutar_pygame():
 
     running = True
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: running = False
-            
-            if game_state == START_SCREEN:
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if input_box1.collidepoint(event.pos):
-                        active_box = input_box1
-                        player1_name = ""
-                    elif input_box2.collidepoint(event.pos):
-                        active_box = input_box2
-                        player2_name = ""
-                    elif start_button.collidepoint(event.pos):
-                        game, game_state = Game(), GAME_SCREEN
-                        game.jugador1.nombre, game.jugador2.nombre = player1_name, player2_name
-                    else:
-                        active_box = None
-                if event.type == pygame.KEYDOWN and active_box:
-                    name_ptr = player1_name if active_box == input_box1 else player2_name
-                    if event.key == pygame.K_BACKSPACE: name_ptr = name_ptr[:-1]
-                    else: name_ptr += event.unicode
-                    if active_box == input_box1: player1_name = name_ptr
-                    else: player2_name = name_ptr
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                running = False
+            else:
+                game, game_state, dice_rolled, selected_point, possible_moves, player1_name, player2_name, active_box, invalid_move_message, invalid_move_timer = handle_event(event, game, game_state, dice_rolled, selected_point, possible_moves, player1_name, player2_name, active_box)
 
-            elif game_state == GAME_SCREEN:
-                color = game.jugador_actual().color
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    if roll_dice_button.collidepoint(pos) and not dice_rolled:
-                        game.tirar_dados()
-                        dice_rolled = True
-                    elif dice_rolled:
-                        clicked_dest = get_point_from_pos(pos)
-                        if selected_point is not None and clicked_dest in possible_moves:
-                            if game.mover_ficha(selected_point, clicked_dest, color):
-                                selected_point, possible_moves = None, []
-                                if not game.available_moves:
-                                    game.cambiar_turno()
-                                    dice_rolled = False
-                            else:
-                                invalid_move_message = "Invalid Move"
-                                invalid_move_timer = pygame.time.get_ticks()
-                        elif clicked_dest is not None:
-                            # One-click bear-off
-                            if game.jugador_actual().puede_sacar_fichas(game.board) and game.puede_mover(clicked_dest, "off", color):
-                                if game.mover_.ficha(clicked_dest, "off", color):
-                                    if not game.available_moves:
-                                        game.cambiar_turno()
-                                        dice_rolled = False
-                                else:
-                                    invalid_move_message = "Invalid Move"
-                                    invalid_move_timer = pygame.time.get_ticks()
-                            elif clicked_dest == "bar" or (clicked_dest != "off" and game.board._puntos_[clicked_dest] and game.board._puntos_[clicked_dest][-1]._color_ == color):
-                                selected_point = clicked_dest
-                                possible_moves = []
-                                for move in set(game.available_moves):
-                                    if color == "blanco":
-                                        dest = 24 - move if selected_point == "bar" else selected_point - move
-                                    else:
-                                        dest = move - 1 if selected_point == "bar" else selected_point + move
-                                    
-                                    if game.puede_mover(selected_point, dest, color):
-                                        possible_moves.append(dest)
-                            else:
-                                selected_point, possible_moves = None, []
-        
         screen.fill(BACKGROUND_COLOR)
         if game_state == START_SCREEN:
             draw_text(screen, "Backgammon", title_font, FONT_COLOR, WIDTH//2, HEIGHT//4)
@@ -261,7 +268,7 @@ def ejecutar_pygame():
             pygame.draw.rect(screen, INPUT_BOX_ACTIVE_COLOR if active_box == input_box2 else INPUT_BOX_COLOR, input_box2)
             draw_text(screen, player2_name, font, FONT_COLOR, input_box2.centerx, input_box2.centery)
             pygame.draw.rect(screen, BUTTON_COLOR, start_button)
-            draw_text(screen, "Start Game", font, BUTTON_TEXT_COLOR, start_button.centerx, start_button.centery)
+            draw_text(screen, "Iniciar Juego", font, BUTTON_TEXT_COLOR, start_button.centerx, start_button.centery)
         elif game_state == GAME_SCREEN:
             draw_side_panel(screen, font, game)
             draw_board(screen)
@@ -269,7 +276,7 @@ def ejecutar_pygame():
             draw_checkers(screen, font, game)
             if not dice_rolled:
                 pygame.draw.rect(screen, BUTTON_COLOR, roll_dice_button)
-                draw_text(screen, "Roll Dice", font, BUTTON_TEXT_COLOR, roll_dice_button.centerx, roll_dice_button.centery)
+                draw_text(screen, "Tirar Dados", font, BUTTON_TEXT_COLOR, roll_dice_button.centerx, roll_dice_button.centery)
             else:
                 draw_dice_and_moves(screen, font, game)
         
@@ -282,6 +289,7 @@ def ejecutar_pygame():
         pygame.display.flip()
 
     pygame.quit()
+    sys.exit()
 
 if __name__ == '__main__':
     ejecutar_pygame()
