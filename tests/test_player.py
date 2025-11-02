@@ -26,24 +26,24 @@ class TestJugador(unittest.TestCase):
 
     def test_sumar_puntos_incrementa_correctamente(self):
         """Verifica que los puntos se acumulen correctamente."""
-        self.jugador.sumar_puntos(5)
+        self.jugador.sumar_puntos(5, verbose=False)
         self.assertEqual(self.jugador.puntos, 5)
-        self.jugador.sumar_puntos(3)
+        self.jugador.sumar_puntos(3, verbose=False)
         self.assertEqual(self.jugador.puntos, 8)
 
     def test_sacar_ficha_incrementa_fichas_fuera(self):
         """Verifica que sacar fichas aumente el contador de fichas fuera."""
-        self.jugador.sacar_ficha()
+        self.jugador.sacar_ficha(verbose=False)
         self.assertEqual(self.jugador.fichas_fuera, 1)
         for _ in range(4):
-            self.jugador.sacar_ficha()
+            self.jugador.sacar_ficha(verbose=False)
         self.assertEqual(self.jugador.fichas_fuera, 5)
 
     def test_ha_ganado_devuelve_false_si_faltan_fichas(self):
         """Verifica que no se declare victoria si faltan fichas fuera."""
         self.assertFalse(self.jugador.ha_ganado())
         for _ in range(14):
-            self.jugador.sacar_ficha()
+            self.jugador.sacar_ficha(verbose=False)
         self.assertFalse(self.jugador.ha_ganado())
 
     def test_ha_ganado_devuelve_true_si_tiene_15_fichas_fuera(self):
@@ -91,8 +91,8 @@ class TestTurnManager(unittest.TestCase):
 
     def setUp(self):
         """Inicializa dos jugadores y el administrador de turnos."""
-        self.jugador_a = Jugador("A", "white")
-        self.jugador_b = Jugador("B", "black")
+        self.jugador_a = Jugador("A", "blanco")
+        self.jugador_b = Jugador("B", "negro")
         self.tm = TurnManager(self.jugador_a, self.jugador_b)
 
     def test_alternancia_de_turnos_funciona_correctamente(self):
@@ -103,13 +103,21 @@ class TestTurnManager(unittest.TestCase):
         self.tm.siguiente_turno()
         self.assertEqual(self.tm.jugador_actual().nombre, "A")
 
-    @patch("stdout", new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_mostrar_turno(self, mock_stdout):
         """Verifica que se imprima correctamente el turno actual."""
         self.tm.mostrar_turno()
-        self.assertIn("Turno: A (white)", mock_stdout.getvalue())
-        self.tm.siguiente_turno()
+        output = mock_stdout.getvalue()
+        self.assertIn("Turno: A (blanco)", output)
+
+        # Cambiamos turno y volvemos a capturar salida
         mock_stdout.seek(0)
         mock_stdout.truncate(0)
+        self.tm.siguiente_turno()
         self.tm.mostrar_turno()
-        self.assertIn("Turno: B (black)", mock_stdout.getvalue())
+        output = mock_stdout.getvalue()
+        self.assertIn("Turno: B (negro)", output)
+
+
+if __name__ == "__main__":
+    unittest.main()
