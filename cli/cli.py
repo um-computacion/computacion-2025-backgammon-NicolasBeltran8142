@@ -127,9 +127,9 @@ def fichas_movibles(juego, color):
     return fichas
 
 
-def ejecutar_cli():
+def iniciar_juego_cli():
     """
-    Ejecuta el juego de Backgammon en consola.
+    Inicia el juego de Backgammon en la consola.
     Muestra el tablero, el estado del juego, permite tirar los dados y realizar movimientos.
     Finaliza cuando hay un ganador o el jugador decide salir.
     """
@@ -200,3 +200,7 @@ def ejecutar_cli():
         if continuar.lower() != "s":
             print("Fin del juego. Gracias por jugar")
             break
+
+
+if __name__ == "__main__":
+    iniciar_juego_cli()

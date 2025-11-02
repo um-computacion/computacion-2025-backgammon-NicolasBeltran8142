@@ -139,7 +139,6 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(jugada["destino"], 10)
         self.assertFalse(jugada["captura"])
 
-    @patch("sys.stdout", new_callable=io.StringIO)
     def test_mostrar_historial(self, mock_stdout):
         """Verifica que el historial de jugadas se imprima correctamente."""
         self.board.registrar_jugada("blanco", 0, 5, captura=True)
@@ -148,7 +147,6 @@ class TestBoard(unittest.TestCase):
         self.assertIn("Move history:", output)
         self.assertIn("blanco moved from 0 to 5 (capture)", output)
 
-    @patch("sys.stdout", new_callable=io.StringIO)
     def test_mostrar_tablero(self, mock_stdout):
         """Verifica que el tablero se imprima correctamente en consola."""
         self.board.mostrar_tablero()
@@ -158,7 +156,6 @@ class TestBoard(unittest.TestCase):
         self.assertIn("B", output)
         self.assertIn("N", output)
 
-    @patch("sys.stdout", new_callable=io.StringIO)
     def test_mostrar_tablero_con_barra_y_borneadas(self, mock_stdout):
         """Verifica que se impriman correctamente las fichas en barra y borneadas."""
         self.board._barra_bl

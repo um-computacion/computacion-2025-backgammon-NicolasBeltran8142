@@ -103,7 +103,7 @@ class TestTurnManager(unittest.TestCase):
         self.tm.siguiente_turno()
         self.assertEqual(self.tm.jugador_actual().nombre, "A")
 
-    @patch("sys.stdout", new_callable=StringIO)
+    @patch("stdout", new_callable=StringIO)
     def test_mostrar_turno(self, mock_stdout):
         """Verifica que se imprima correctamente el turno actual."""
         self.tm.mostrar_turno()

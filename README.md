@@ -1,7 +1,7 @@
 # 🧩 Backgammon
 
-**Autor:** Nicolás Marcos Beltran Lazo 
-**Interfaz:** Consola y Gráfica (Pygame)
+-**Autor:** Nicolás Marcos Beltran Lazo 
+-**Interfaz:** Consola y Gráfica (Pygame)
 
 ---
 
@@ -20,7 +20,7 @@ git clone https://github.com/tu_usuario/backgammon.git
 cd backgammon
 Pip install -r requirements.txt
 
-## 2) Instalar dependecias
+ 2) Instalar dependecias
 
 python -m venv venv
 source venv/bin/activate      # En Linux/macOS
