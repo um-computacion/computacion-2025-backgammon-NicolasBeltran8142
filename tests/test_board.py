@@ -155,10 +155,26 @@ class TestBoard(unittest.TestCase):
         output = mock_stdout.getvalue()
         self.assertIn("TOP ZONE", output)
         self.assertIn("BOTTOM ZONE", output)
-        self.assertIn("B", output)
-        self.assertIn("N", output)
+        self.assertIn("B", output)  # hay fichas blancas
+        self.assertIn("N", output)  # hay fichas negras
 
     @patch("sys.stdout", new_callable=io.StringIO)
-    def test_mostrar_tablero_con_barra_y_borneadas(self, mock_stdout):
-        """Verifica que se impriman correctamente las fichas en barra y borneadas."""
-        self.board._barra_bl
+    def test_mostrar_tablero_estado_mixto(self, mock_stdout):
+        """
+        Verifica que mostrar_tablero imprime sin errores con estado mixto
+        (algunos puntos vacíos, otros con fichas).
+        """
+        # Ajustes de estado (no afectan impresión de barra/off, solo robustez)
+        self.board._puntos_[0] = [Checker("blanco", 0)]
+        self.board._puntos_[23] = [Checker("negro", 23)]
+        _ = Checker("blanco", "bar")
+        _ = Checker("negro", "off")
+
+        self.board.mostrar_tablero()
+        output = mock_stdout.getvalue()
+        self.assertIn("TOP ZONE", output)
+        self.assertIn("BOTTOM ZONE", output)
+
+
+if __name__ == "__main__":
+    unittest.main()

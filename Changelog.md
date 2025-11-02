@@ -31,3 +31,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed 
 -
+
+## [0.1.0] - [19/9/2025]
+
+### Added
+- Se ha implementado el nucleo (`core`) del juego de Backgammon.
+- Funcionalidad para tirar los dados.
+- Logica inicial para el movimiento de las fichas.
+- Creacion de la funcion `move_piece` para gestionar los movimientos.
+- Creacion de tests para `core`:
+  - Test de inicializacion del tablero (`test_initialize_board`).
+  - Test de creacion de jugadores (`test_player_creation`).
+  - Test de movimiento de fichas (`test_move_piece`).
+
+### Changed
+- Mejora en la documentacion interna del codigo del `core`.
+
+---
+
+## [0.2.0] - [1/10/2025]
+
+### Added
+- Se ha anadido una interfaz de linea de comandos (`cli`) para interactuar con el juego.
+- Sistema de turnos para dos jugadores.
+- Creacion de tests para `cli`:
+  - Test para la entrada de comandos (`test_cli_input`).
+  - Test para el sistema de turnos (`test_turn_system`).
+
+### Fixed
+- Corregido un error que impedia que los dados dobles se contaran correctamente.
+- Solucionado un problema que causaba que las fichas se superpusieran en el tablero.
+- Arreglado un bug que no permitia que las fichas eliminadas volvieran a entrar al juego.
+- El juego ya no se bloquea al intentar un movimiento invalido.
+- Solucionados problemas de rendimiento en la logica del juego.
+- Mejorada la validacion de movimientos para evitar trampas.
+
+### Removed
+- Se ha eliminado la funcion `move_piece`, ya que su logica ha sido refactorizada y reemplazada por un sistema mas eficiente.
+- Se ha eliminado la funcion `calculate_score` por ser obsoleta.
+
+---
+
+## [0.3.0] - [25/10/2025]
+
+### Added
+- ¡Se ha anadido una interfaz grafica (`pygame_ui`)! Ahora se puede jugar en una ventana con elementos visuales.
+- Representacion grafica del tablero, las fichas y los dados.
+- Interaccion con el raton para mover las fichas.
+
+### Changed
+- El juego ahora se inicia por defecto con la interfaz de `pygame`.
