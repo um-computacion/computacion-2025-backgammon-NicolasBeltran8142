@@ -295,6 +295,41 @@ class Game:
             return self.jugador2.nombre
         return None
 
+    def hay_movimientos_posibles(self, color):
+        """
+        Verifica si el jugador tiene algun movimiento valido con los dados actuales.
+
+        Args:
+            color (str): Color del jugador.
+
+        Retorna:
+            bool: True si hay al menos un movimiento posible, False en caso contrario.
+        """
+        posibles_origenes = self.puntos_validos_de_origen(color)
+
+        for origen in posibles_origenes:
+            # Check standard moves for each unique dice roll
+            for move in set(self.available_moves):
+                if origen == "bar":
+                    # Calculate destination from the bar
+                    destino = 24 - move if color == "blanco" else move - 1
+                else:
+                    # Calculate destination on the board
+                    destino = origen - move if color == "blanco" else origen + move
+
+                # Check if the calculated move is valid
+                if self.puede_mover(origen, destino, color):
+                    return True
+
+            # After checking standard moves, check for bear-off moves if applicable
+            jugador = self._jugador_por_color(color)
+            if jugador.puede_sacar_fichas(self.board) and origen != "bar":
+                # This checks if an exact bear-off move is possible with any of the dice
+                if self.puede_mover(origen, "off", color):
+                    return True
+
+        return False
+
     def mostrar_estado(self):
         """
         Muestra el estado actual del juego en la consola.

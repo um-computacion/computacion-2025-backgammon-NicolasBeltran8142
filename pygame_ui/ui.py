@@ -222,6 +222,8 @@ def draw_checkers(screen, font, game):
         font: Fuente utilizada para mostrar cantidades.
         game (Game): Instancia actual del juego.
     """
+    if not game:
+        return
     for point_index, point in enumerate(game.board._puntos_):
         if point:
             color = CHECKER_WHITE if point[-1]._color_ == "blanco" else CHECKER_BLACK
@@ -331,6 +333,8 @@ def draw_dice_and_moves(screen, font, game):
         font: Fuente utilizada para los textos.
         game (Game): Instancia actual del juego.
     """
+    if not game:
+        return
     if game.last_roll:
         draw_text(screen, "Dados:", font, FONT_COLOR, 150, 550)
         draw_text(
@@ -356,6 +360,8 @@ def handle_event(
     player1_name,
     player2_name,
     active_box,
+    invalid_move_message,
+    no_moves_message,
 ):
     """
     Maneja un evento de Pygame y actualiza el estado del juego segun la accion del usuario.
@@ -377,8 +383,7 @@ def handle_event(
     Returns:
         tuple: Estado actualizado del juego y variables de interfaz.
     """
-    invalid_move_message = ""
-    invalid_move_timer = 0
+    no_moves_timer = 0
 
     if game_state == START_SCREEN:
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -411,6 +416,9 @@ def handle_event(
             if roll_dice_button.collidepoint(pos) and not dice_rolled:
                 game.tirar_dados()
                 dice_rolled = True
+                if not game.hay_movimientos_posibles(color):
+                    no_moves_message = "No tienes movimientos posibles. Se cede el turno."
+                    no_moves_timer = pygame.time.get_ticks()
             elif dice_rolled:
                 clicked_dest = get_point_from_pos(pos)
                 if selected_point is not None and clicked_dest in possible_moves:
@@ -438,25 +446,34 @@ def handle_event(
                         and game.board._puntos_[clicked_dest]
                         and game.board._puntos_[clicked_dest][-1]._color_ == color
                     ):
-                        selected_point = clicked_dest
-                        possible_moves = []
+                        
+                        temp_possible_moves = []
                         for move in set(game.available_moves):
                             if color == "blanco":
                                 dest = (
                                     24 - move
-                                    if selected_point == "bar"
-                                    else selected_point - move
+                                    if clicked_dest == "bar"
+                                    else clicked_dest - move
                                 )
                             else:
                                 dest = (
                                     move - 1
-                                    if selected_point == "bar"
-                                    else selected_point + move
+                                    if clicked_dest == "bar"
+                                    else clicked_dest + move
                                 )
-                            if game.puede_mover(selected_point, dest, color):
-                                possible_moves.append(dest)
+                            if game.puede_mover(clicked_dest, dest, color):
+                                temp_possible_moves.append(dest)
+
+                        if not temp_possible_moves:
+                            invalid_move_message = "Esta ficha no tiene movimientos posibles"
+                            invalid_move_timer = pygame.time.get_ticks()
+                            selected_point, possible_moves = None, []
+                        else:
+                            selected_point = clicked_dest
+                            possible_moves = temp_possible_moves
                     else:
                         selected_point, possible_moves = None, []
+                        invalid_move_message = ""
 
     return (
         game,
@@ -468,7 +485,8 @@ def handle_event(
         player2_name,
         active_box,
         invalid_move_message,
-        invalid_move_timer,
+        no_moves_message,
+        no_moves_timer,
     )
 
 
@@ -495,7 +513,8 @@ def ejecutar_pygame():
     dice_rolled, selected_point, possible_moves = False, None, []
 
     invalid_move_message = ""
-    invalid_move_timer = 0
+    no_moves_message = ""
+    no_moves_timer = 0
 
     running = True
     while running:
@@ -514,7 +533,8 @@ def ejecutar_pygame():
                     player2_name,
                     active_box,
                     invalid_move_message,
-                    invalid_move_timer,
+                    no_moves_message,
+                    no_moves_timer,
                 ) = handle_event(
                     event,
                     game,
@@ -525,9 +545,26 @@ def ejecutar_pygame():
                     player1_name,
                     player2_name,
                     active_box,
+                    invalid_move_message,
+                    no_moves_message,
                 )
 
         screen.fill(BACKGROUND_COLOR)
+
+        if no_moves_message:
+            if pygame.time.get_ticks() - no_moves_timer > 3000:
+                no_moves_message = ""
+                game.cambiar_turno()
+                dice_rolled = False
+            else:
+                draw_text(
+                    screen,
+                    no_moves_message,
+                    font,
+                    (255, 0, 0),
+                    WIDTH // 2,
+                    HEIGHT // 2,
+                )
 
         if game_state == START_SCREEN:
             draw_text(
@@ -589,16 +626,13 @@ def ejecutar_pygame():
                 draw_dice_and_moves(screen, font, game)
 
         if invalid_move_message:
-            if pygame.time.get_ticks() - invalid_move_timer > 2000:
-                invalid_move_message = ""
-            else:
-                draw_text(
-                    screen,
-                    invalid_move_message,
+            draw_text(
+                screen,
+                invalid_move_message,
                     font,
                     (255, 0, 0),
-                    WIDTH // 2,
-                    HEIGHT // 2,
+                    PANEL_WIDTH // 2,
+                    750,
                 )
 
         pygame.display.flip()

@@ -1,5 +1,5 @@
-from cli.cli import ejecutar_cli
-
+from cli.cli import iniciar_juego_cli
+from pygame_ui.ui import ejecutar_pygame
 
 def main():
     """
@@ -9,16 +9,14 @@ def main():
     while True:
         print("\nSelect the game mode:")
         print("1. Command Line Interface (CLI)")
-        print("2. Pygame User Interface (GUI)")
+        print("2. Pygame User Interface (UI)")
         choice = input("Enter your choice (1 or 2): ")
 
         if choice == "1":
-            ejecutar_cli()
+            iniciar_juego_cli()
             break
         elif choice == "2":
             try:
-                from pygame_ui.ui import ejecutar_pygame
-
                 ejecutar_pygame()
             except ImportError:
                 print(
